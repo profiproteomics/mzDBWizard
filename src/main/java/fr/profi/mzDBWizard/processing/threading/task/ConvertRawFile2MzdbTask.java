@@ -1,0 +1,256 @@
+/*
+ * Copyright (C) 2019
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the CeCILL FREE SOFTWARE LICENSE AGREEMENT
+ * ; either version 2.1
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * CeCILL License V2.1 for more details.
+ *
+ * You should have received a copy of the CeCILL License
+ * along with this program; If not, see <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html>.
+ */
+package fr.profi.mzDBWizard.processing.threading.task;
+
+import fr.profi.mzDBWizard.configuration.ConfigurationManager;
+import fr.profi.mzDBWizard.processing.info.TaskError;
+import fr.profi.mzDBWizard.processing.info.TaskInfo;
+import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
+import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
+import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
+import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
+import fr.profi.mzDBWizard.util.FileUtility;
+import fr.profi.mzDBWizard.util.GenericUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+import java.io.*;
+
+/**
+ *
+ * Task to convert a raw file to a mzdb file
+ *
+ * @author JPM235353
+ */
+public class ConvertRawFile2MzdbTask extends AbstractTask {
+
+    private File m_file;
+
+    private Process m_conversionProcess = null;
+
+    private boolean m_testMode = false;
+
+    private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
+
+    public ConvertRawFile2MzdbTask(AbstractCallback callback, File f) {
+        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true, null, TaskInfo.VisibilityEnum.VISIBLE));
+
+        m_file = f;
+    }
+
+    public ConvertRawFile2MzdbTask(AbstractCallback callback, File f, boolean testMode) {
+        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true, null, testMode ? TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR: TaskInfo.VisibilityEnum.VISIBLE));
+
+        m_file = f;
+        m_testMode = testMode;
+    }
+
+    public String getUniqueKey() {
+        return m_file.getName().toLowerCase();
+    }
+
+
+    @Override
+    public int getType() {
+        return WorkerPool.CONVERTER_THREAD;
+    }
+
+
+    @Override
+    public boolean precheck() {
+
+        // check that file exists
+        if (! m_file.exists()) {
+            m_taskError = new TaskError("File "+ m_file.getAbsolutePath()+" does not exist.");
+            return false;
+        }
+
+        // check that corresponding converted file does not exist
+        String path = m_file.getAbsolutePath();
+        int index = path.lastIndexOf(".");
+        String mzdbFilePath = path.substring(0,index+1)+"mzdb";
+        File mzdbFile = new File(mzdbFilePath);
+        if (mzdbFile.exists()) {
+            m_taskError = new TaskError("Mzdb file corresponding to "+ m_file.getAbsolutePath()+" already exists.");
+            return false;
+        }
+
+        // delete mzdb tmp file if necessary
+        String mzdbTmpFilePath = path.substring(0,index+1)+"mzdb.tmp";
+        File tempFile = new File(mzdbTmpFilePath);
+        if (tempFile.exists()) {
+            FileUtility.forceDeleteFile(tempFile);
+        }
+
+
+        return true;
+    }
+
+    @Override
+    public boolean runTask() {
+
+        try {
+            return runTaskImplementation();
+        } catch (Exception e) {
+            m_taskError = new TaskError(e);
+            return false;
+        }
+    }
+    private boolean runTaskImplementation() throws Exception {
+
+        if (!precheck()) {
+            return false;
+        }
+
+        // check that the raw file has been completely copied on the disk
+        FileUtility.checkFileFinalization(m_file);
+
+        // check minimum disk space
+        if (!checkSufficientDiskSpace()) {
+            m_taskError = new TaskError("Insufficient disk space to convert "+ m_file.getAbsolutePath());
+            return false;
+        }
+
+        // convert file
+        if (!convertFile()) {
+            return false;
+        }
+
+        //
+        try {
+            while (/*m_run &&*/ m_conversionProcess != null && m_conversionProcess.isAlive()) {
+                Thread.sleep(2000);
+            }
+        } catch (InterruptedException ex) {
+            m_logger.error("File Finalization Interrupted!");
+        }
+
+        if (m_conversionProcess != null && m_conversionProcess.exitValue() == 0) {
+            File tmpFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb" + ".tmp");
+            File mzdbFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb");
+            if (tmpFile.exists()) {
+                String log = tmpFile.getAbsolutePath() + " size is " + tmpFile.length() + " bytes";
+                m_logger.debug(log);
+                m_taskInfo.addLog(log);
+
+                if (!tmpFile.renameTo(new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb"))) {
+                    m_taskError = new TaskError("Temp File Renaming Failure", "File " + tmpFile.getAbsolutePath() + " could not be renamed.");
+                    String log2 = "File " + tmpFile.getAbsolutePath() + " could not be renamed.";
+                    m_logger.debug(log2);
+                    m_taskInfo.addLog(log2);
+
+                    return false;
+                }
+            }
+
+            if (m_callback instanceof ConvertRawFile2MzdbCallback) {
+                ((ConvertRawFile2MzdbCallback) m_callback).setRawFile(m_file);
+                ((ConvertRawFile2MzdbCallback) m_callback).setMzdbFile(mzdbFile);
+            }
+
+        } else {
+
+            m_taskError = new TaskError("Converter Failure", "Non-zero exit value.");
+
+            String log = "File converter for file " + m_file.getAbsolutePath() + " is not responding.";
+            m_taskInfo.addLog(log);
+            m_logger.info(log);
+
+            return false;
+        }
+
+        String log = "Converting for file: " + m_file.getAbsolutePath() + " has come to its end.";
+        m_taskInfo.addLog(log);
+        m_logger.info(log);
+
+
+
+        return true;
+    }
+
+    private boolean convertFile() {
+
+        try {
+
+            String usedConverter;
+
+            String architecture = GenericUtil.getSystemArchitecture();
+            if (architecture.contains("64")) {
+                m_conversionProcess = new ProcessBuilder(ConfigurationManager.getConverterPath(), "-i", m_file.getAbsolutePath(), "-o", m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb.tmp").start();
+                usedConverter = ConfigurationManager.getConverterPath();
+            } else {
+                m_taskError = new TaskError("This installation package is not supported by this processor type. Contact your administrator.");
+                return false;
+            }
+
+            m_taskInfo.addLog("------------------------------------------------------------------------");
+            m_taskInfo.addLog("CONVERSION");
+            m_taskInfo.addLog("------------------------------------------------------------------------");
+            m_taskInfo.addLog("");
+
+            String log = "Converter: " + usedConverter;
+            m_logger.info(log);
+            m_taskInfo.addLog(log);
+
+            InputStream standardOutputStream = m_conversionProcess.getInputStream();
+            BufferedReader standardReader = new BufferedReader(new InputStreamReader(standardOutputStream));
+            String line;
+            while ((line = standardReader.readLine()) != null) {
+                m_logger.info(line);
+                m_taskInfo.addLog(line);
+
+            }
+
+            InputStream errorStream = m_conversionProcess.getErrorStream();
+            BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
+            String errorLine;
+
+            //m_logs.append("\n").append("------------------------------------------------------------------------").append("\n").append("WARNINGS & ERRORS").append("\n").append("------------------------------------------------------------------------").append("\n").append("\n");
+
+            while ((errorLine = errorReader.readLine()) != null) {
+                m_logger.info("Warning:");
+                m_logger.info(errorLine);
+                m_taskInfo.addWarning("warning:");
+                m_taskInfo.addLog(errorLine);
+
+                //m_logs.append(errorLine).append("\n");
+                //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.NON_CRITICAL_ERROR, "Converter ErrorStream", errorLine));
+            }
+
+        } catch (IOException ex) {
+            m_taskError = new TaskError("Converter faced an IOException during conversion of " + m_file.getAbsolutePath() + ". Check input file's integrity.");
+            //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Converter Failure", "Converter faced an IOException. Check input file's integrity."));
+            m_logger.error("File convertion failed!");
+            //m_logs.append("File convertion failed!" + "\n");
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+    private boolean checkSufficientDiskSpace() {
+        if (m_file.getUsableSpace() / 1024 / 1024 > AVAILABLE_SPACE_THRESHOLD) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    private static final int AVAILABLE_SPACE_THRESHOLD = 3000;
+}
