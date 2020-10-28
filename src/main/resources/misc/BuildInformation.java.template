@@ -5,7 +5,7 @@
  */
 package fr.profi.mzDBWizard.util;
 
-import fr.proline.util.version.IVersion;
+import fr.profi.util.version.IVersion;
 
 /**
  *

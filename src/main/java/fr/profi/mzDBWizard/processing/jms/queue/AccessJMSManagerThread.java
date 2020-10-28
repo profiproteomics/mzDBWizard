@@ -85,7 +85,7 @@ public class AccessJMSManagerThread extends Thread {
 
 
         } catch (InterruptedException | JMSException t) {
-            LoggerFactory.getLogger("AccessJMSManagerThread").debug("Unexpected exception in main loop of AccessServiceThread", t);
+            LoggerFactory.getLogger("mzDB-Task").debug("Unexpected exception in main loop of AccessServiceThread", t);
             m_instance = null; // reset thread
         }
     }
@@ -99,9 +99,9 @@ public class AccessJMSManagerThread extends Thread {
                 m_connection.start(); // Explicitely start connection to begin Consumer reception
                 m_session = m_connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
             } catch (JMSException je) {
-                LoggerFactory.getLogger("ProlineStudio.DPM").error("Unexpected exception when initializing JMS Connection", je);
+                LoggerFactory.getLogger("mzDB-Task").error("Unexpected exception when initializing JMS Connection", je);
             } catch (Exception e) {
-                LoggerFactory.getLogger("ProlineStudio.DPM").error("Unexpected exception when initializing JMS Connection", e);
+                LoggerFactory.getLogger("mzDB-Task").error("Unexpected exception when initializing JMS Connection", e);
             }
         }
     }

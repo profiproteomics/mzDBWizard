@@ -45,7 +45,7 @@ public class ServiceNotificationListener implements MessageListener {
     public final static String NOTIFICATION_JSON_REQ_ID_KEY= "json_rpc_request_id";
     public final static String NOTIFICATION_SERVICE_STATUS_KEY= "event_type";
 
-    protected static final Logger m_loggerProline = LoggerFactory.getLogger("ProlineStudio.DPM.Task");
+    protected static final Logger m_loggerProline = LoggerFactory.getLogger("mzDB-Task");
 
     private List<AbstractJMSCallback> m_callbacks = null;
     private List<JMSNotificationMessage[]> m_replyVals = null;

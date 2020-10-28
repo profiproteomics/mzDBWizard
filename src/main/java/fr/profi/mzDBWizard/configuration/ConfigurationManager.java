@@ -288,8 +288,10 @@ public class ConfigurationManager {
         Properties prop = new Properties();
         InputStream is = null;
         try {
-            is = new FileInputStream(FileManager.getSingleton().getFile(FileManager.CONFIGURATION_FILE));
-            
+
+            File cfgFile =new File(FileManager.CONFIGURATION_FILE);
+            is =  new FileInputStream(cfgFile);
+
             logger.debug("Loading Configuration File: " + FileManager.CONFIGURATION_FILE + " ..");
             
             prop.load(is);
@@ -380,8 +382,8 @@ public class ConfigurationManager {
         OutputStream output = null;
         
         try {
-            
-            output = new FileOutputStream(FileManager.getSingleton().getFile(FileManager.CONFIGURATION_FILE));
+
+            output = new FileOutputStream(FileManager.CONFIGURATION_FILE);
 
             // set the properties value
             prop.setProperty("JMS_SERVER_HOST", ConfigurationManager.getJmsServerHost());

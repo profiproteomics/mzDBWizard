@@ -5,13 +5,13 @@
     <parent>
         <groupId>fr.proline</groupId>
         <artifactId>ProFI-Pom</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
         <relativePath />
     </parent>
 
     <groupId>fr.profi</groupId>
     <artifactId>mzDB-wizard</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
     <properties>
@@ -21,7 +21,7 @@
 
     <name>mzDB-wizard</name>
     <scm>
-        <connection>scm:svn:https://bioproj.extra.cea.fr/svn/proline/mzDB/mzDB-wizard/trunk</connection>
+        <connection>scm:git:https://github.com/profiproteomics/mzDBWizard.git</connection>
     </scm>
 
     <dependencies>
@@ -58,8 +58,8 @@
         </dependency>
         <dependency>
             <groupId>fr.profi</groupId>
-            <artifactId>mzdb-access</artifactId>
-            <version>0.7.0</version>
+            <artifactId>mzdb-access_${scala.version}</artifactId>
+            <version>0.10.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>xerces</groupId>
@@ -69,8 +69,8 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>mzdb-processing</artifactId>
-            <version>0.7.0</version>
+            <artifactId>mzdb-processing_${scala.version}</artifactId>
+            <version>0.10.0-SNAPSHOT</version>
         </dependency>
         
         <dependency>
@@ -141,9 +141,19 @@
                         <exclude>**/logback.xml</exclude>
                         <exclude>**/config/**</exclude>
                         <exclude>**/converter/**</exclude>
-                        <exclude>**/icons/**</exclude>
+                        <exclude>**/documentation/**</exclude>
                         <exclude>**//misc/**</exclude>
+                        <exclude>**//samples/**</exclude>
+                        <exclude>**//scripts/**</exclude>
                     </excludes>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathLayoutType>custom</classpathLayoutType>
+                            <customClasspathLayout>lib/${artifact.artifactId}-${artifact.baseVersion}${dashClassifier?}.${artifact.extension}</customClasspathLayout>
+                            <mainClass>fr.profi.mzDBWizard.MZDBWizard</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
 
@@ -168,9 +178,10 @@
                                 <resource>
                                     <directory>src/main/resources</directory>
                                     <includes>
+                                        <include>**/logback.xml</include>
                                         <include>converter/**</include>
                                         <include>config/**.properties</include>
-                                        <include>icons/**.png</include>
+                                        <include>samples/**.properties</include>
                                         <include>documentation/**.pdf</include>
                                     </includes>
                                 </resource>
@@ -178,6 +189,60 @@
                         </configuration>
                     </execution>
 
+                    <!-- Copy scripts to '/target' with jar -->
+                    <execution>
+                        <id>copy-scripts</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/scripts</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <!-- Copy samples to '/target' with jar -->
+                    <execution>
+                        <id>copy-samples</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <outputDirectory>${project.build.directory}/samples</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/samples</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <!-- Copy samples to '/target' with jar -->
+                    <execution>
+                        <id>copy-doc</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <outputDirectory>${project.build.directory}/documentation</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/documentation</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 

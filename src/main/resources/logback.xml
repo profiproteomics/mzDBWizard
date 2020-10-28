@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <contextName>mzDBWizard</contextName>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+
+        <encoder>
+            <pattern>%-5level: [%thread] +%-4relative ms  %date{dd MMM yyyy - HH:mm:ss.SSS} %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="DebugRollingfileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <append>true</append>
+        <File>mzDBWizard_debug.txt</File>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>mzDBWizard.debug.%d{yyyy-MM-dd}.%i.txt</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <!-- TTCCLayout -->
+            <pattern>%date{dd MMM yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} %mdc - %msg%n</pattern>
+        </encoder>
+
+    </appender>
+
+    <logger name="fr.profi" level="debug"/>
+
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="DebugRollingfileAppender" />
+    </root>
+
+</configuration>

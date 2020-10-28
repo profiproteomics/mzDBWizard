@@ -16,11 +16,7 @@
  */
 package fr.profi.mzDBWizard;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-import ch.qos.logback.core.FileAppender;
-import ch.qos.logback.core.util.StatusPrinter;
+
 import fr.profi.mzDBWizard.configuration.CurrentExecution;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.util.FileManager;
@@ -32,10 +28,11 @@ import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import java.io.File;
+
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
-import java.text.DateFormat;
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -58,35 +55,37 @@ public class MZDBWizard {
     public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 
 
-        //VDS : can't we use of logback.properties ? More easier to change at runtime => generated log file : Proline_Studio ?! FILE "21 juillet 2017.log" => better "mzdbWizard_20170721.log" ?! 
-        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+//        //VDS : can't we use of logback.properties ? More easier to change at runtime => generated log file : Proline_Studio ?! FILE "21 juillet 2017.log" => better "mzdbWizard_20170721.log" ?!
+//        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+//
+//        FileAppender fileAppender = new FileAppender();
+//        fileAppender.setContext(loggerContext);
+//        fileAppender.setName("timestamp");
+//        fileAppender.setAppend(true);
+//
+//        String dateString = DateFormat.getDateInstance(DateFormat.SHORT).format(System.currentTimeMillis()).replaceAll("/", "");
+//
+//        String filename = "log" + File.separator + "mzdbWizard_" + dateString + ".log";
+//
+//        fileAppender.setFile(filename);
+//
+//        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+//        encoder.setContext(loggerContext);
+//        encoder.setPattern("%date{dd MMM yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} %mdc - %msg%n");
+//        encoder.start();
+//
+//        fileAppender.setEncoder(encoder);
+//        fileAppender.start();
+//
+//        Logger logbackLogger = loggerContext.getLogger("ROOT");
+//        logbackLogger.setLevel(Level.DEBUG);
+//        logbackLogger.addAppender(fileAppender);
+//
+//        // OPTIONAL: print logback internal status messages
+//        StatusPrinter.print(loggerContext);
 
-        FileAppender fileAppender = new FileAppender();
-        fileAppender.setContext(loggerContext);
-        fileAppender.setName("timestamp");
-        fileAppender.setAppend(true);
-
-        String dateString = DateFormat.getDateInstance(DateFormat.SHORT).format(System.currentTimeMillis()).replaceAll("/", "");
-
-        String filename = "log" + File.separator + "mzdbWizard_" + dateString + ".log";
-
-        fileAppender.setFile(filename);
-
-        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-        encoder.setContext(loggerContext);
-        encoder.setPattern("%date{dd MMM yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} %mdc - %msg%n");
-        encoder.start();
-
-        fileAppender.setEncoder(encoder);
-        fileAppender.start();
-
-        Logger logbackLogger = loggerContext.getLogger("ROOT");
-        logbackLogger.setLevel(ch.qos.logback.classic.Level.ALL);
-        logbackLogger.addAppender(fileAppender);
-
-        // OPTIONAL: print logback internal status messages
-        StatusPrinter.print(loggerContext);
-
+        Logger logger = LoggerFactory.getLogger("mzDBWizard");
+        logger.info("Start mzDBWWizard. Read configuration");
         ConfigurationManager.loadProperties();
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -113,12 +112,14 @@ public class MZDBWizard {
 
                     CurrentExecution.initInstance(new File(settingsAndReviewDialog.getDirectoryURL()), settingsAndReviewDialog.getConfiguration());
 
-                    File mzdbFile = FileManager.getSingleton().getFile(FileManager.TEST_MZDB);
+//                    File mzdbFile = FileManager.getSingleton().getFile(FileManager.TEST_MZDB);
+                    File mzdbFile = new File(FileManager.TEST_MZDB);
                     if ((mzdbFile != null) && (mzdbFile.exists())) {
                         FileUtility.forceDeleteFile(mzdbFile);
                     }
 
-                    File tempFile = FileManager.getSingleton().getFile(FileManager.TEST_MZDB_TMP);
+//                    File tempFile = FileManager.getSingleton().getFile2(FileManager.TEST_MZDB_TMP);
+                    File tempFile = new File(FileManager.TEST_MZDB_TMP);
                     if ((tempFile != null) && (tempFile.exists())) {
                         FileUtility.forceDeleteFile(tempFile);
                     }
@@ -126,7 +127,7 @@ public class MZDBWizard {
                     if (settingsAndReviewDialog.getConfiguration().getConvert()) {
 
                         //JPM.TODO : TEST with another thread
-                        File rawFile = FileManager.getSingleton().getFile(FileManager.TEST_RAW);
+                        File rawFile = new File(FileManager.TEST_RAW);
 
                         if ((rawFile != null) && (rawFile.exists())) {
 
@@ -150,7 +151,7 @@ public class MZDBWizard {
                                             }
                                         });
                                     } else {
-                                        LoggerFactory.getLogger(getClass().toString()).error("Something is wrong with raw2mzDB.exe. Call your administrator!");
+                                        logger.error("Something is wrong with raw2mzDB.exe. Call your administrator!");
                                         System.exit(1);
                                     }
                                 }

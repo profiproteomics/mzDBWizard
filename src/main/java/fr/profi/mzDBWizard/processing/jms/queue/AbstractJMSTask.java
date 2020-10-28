@@ -57,7 +57,7 @@ public abstract class AbstractJMSTask  extends AbstractTaskWithInfo implements M
     protected boolean m_synchronous;
     private int responseTimeout = 10000;
 
-    protected static final Logger m_logger = LoggerFactory.getLogger("ProlineStudio.DPM.Task");
+    protected static final Logger m_logger = LoggerFactory.getLogger("mzDB-Task");
 
     public static final String TASK_LIST_INFO = "Services JMS";
 

@@ -5,7 +5,7 @@
  */
 package fr.profi.mzDBWizard.util;
 
-import fr.proline.util.version.IVersion;
+import fr.profi.util.version.IVersion;
 
 /**
  *
@@ -20,7 +20,7 @@ public class BuildInformation implements IVersion {
 
     @Override
     public String getVersion() {
-        return "0.4.0-SNAPSHOT";
+        return "1.0.0-SNAPSHOT";
     }
     
 }

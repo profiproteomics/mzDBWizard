@@ -128,7 +128,7 @@ public class TaskManagerThread extends Thread {
 
 
         } catch (Throwable t) {
-            LoggerFactory.getLogger("TaskManagerThread").error("Unexpected exception in main loop of AccessDatabaseThread", t);
+            LoggerFactory.getLogger("mzDB-Task").error("Unexpected exception in main loop of AccessDatabaseThread", t);
             m_instance = null; // reset thread
         }
 

@@ -33,7 +33,7 @@ import java.util.Set;
  * @author VD225637
  */
 public class JMSMessageUtil {
-    protected static final Logger m_loggerProline = LoggerFactory.getLogger("ProlineStudio.DPM.Task");
+    protected static final Logger m_loggerProline = LoggerFactory.getLogger("mzDB-Task");
     private static final String TAB = "    ";
     private static final String DATE_FORMAT = "%td/%<tm/%<tY %<tH:%<tM:%<tS.%<tL";
     private static final int MESSAGE_BUFFER_SIZE = 2048;

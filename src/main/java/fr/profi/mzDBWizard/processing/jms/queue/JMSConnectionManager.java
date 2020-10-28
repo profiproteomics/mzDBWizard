@@ -45,7 +45,7 @@ public class JMSConnectionManager {
 
     public static final String JMS_SETTINGS_PARAMETER_LIST_KEY = "JMS";
 
-    protected static final Logger m_loggerProline = LoggerFactory.getLogger("ProlineStudio.DPM.Task");
+    protected static final Logger m_loggerProline = LoggerFactory.getLogger("mzDB-Task");
 
     //JMS Constants
     public static final String DEFAULT_SERVICE_REQUEST_QUEUE_NAME = "ProlineServiceRequestQueue";

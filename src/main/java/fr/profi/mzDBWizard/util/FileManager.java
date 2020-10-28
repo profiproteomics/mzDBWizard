@@ -19,6 +19,7 @@ package fr.profi.mzDBWizard.util;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 
@@ -47,6 +48,21 @@ public class FileManager {
         return m_singleton;
     }
 
+    public File getFile2(String fileName) {
+
+        try {
+            URL url = this.getClass().getResource(fileName);
+            URI uri = url.toURI();
+            File file = new File(uri);
+            return file;
+        } catch (Exception e) {
+            logger.warn ("getFile2 : File not found: "+fileName );
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
     public File getFile(String fileName) {
 
         try {
@@ -61,11 +77,12 @@ public class FileManager {
         }
     }
 
+    public static final String REF_TEST_MZDB = "./samples/test.mzdb";
+    public static final String TEST_RAW = "./samples/test.raw";
     public static final String TEST_MZDB = "test.mzdb";
-    public static final String TEST_RAW = "test.raw";
     public static final String TEST_MZDB_TMP = "test.mzdb.tmp";
 
-    public static final String CONFIGURATION_FILE = ".."+File.separator+".."+File.separator+".."+File.separator+".."+File.separator+"config"+File.separator+"config.properties";
-
+//    public static final String CONFIGURATION_FILE = ".."+File.separator+".."+File.separator+".."+File.separator+".."+File.separator+"config"+File.separator+"config.properties";
+    public static final String CONFIGURATION_FILE = "./config/config.properties";
 
 }

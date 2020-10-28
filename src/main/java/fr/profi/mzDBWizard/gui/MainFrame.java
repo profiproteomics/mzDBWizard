@@ -32,6 +32,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
+import org.slf4j.LoggerFactory;
+
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.GridBagConstraints;
@@ -44,6 +46,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -263,8 +267,10 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
                 try {
                     File myFile = new File("." + File.separator + "documentation" + File.separator + "user_guide.pdf");
                     Desktop.getDesktop().open(myFile);
-                } catch (IOException ex) {
+                } catch (Exception ex) {
+                    LoggerFactory.getLogger(this.getClass()).warn(" Unable to read user_guide.pdf");
                     // no application registered for PDFs
+                    JOptionPane.showMessageDialog(this,"Unable to read user guide","Documentation access error",JOptionPane.ERROR_MESSAGE);
                 }
             }
         }

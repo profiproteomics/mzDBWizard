@@ -23,6 +23,7 @@ import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
 import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
+import fr.profi.mzDBWizard.util.FileManager;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.util.GenericUtil;
 import org.slf4j.Logger;
@@ -44,6 +45,8 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
     private Process m_conversionProcess = null;
 
     private boolean m_testMode = false;
+    private String m_outputTempFilePath = null;
+    private String m_outputMzdbFilePath = null;
 
     private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
 
@@ -80,23 +83,41 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             return false;
         }
 
-        // check that corresponding converted file does not exist
-        String path = m_file.getAbsolutePath();
-        int index = path.lastIndexOf(".");
-        String mzdbFilePath = path.substring(0,index+1)+"mzdb";
-        File mzdbFile = new File(mzdbFilePath);
-        if (mzdbFile.exists()) {
-            m_taskError = new TaskError("Mzdb file corresponding to "+ m_file.getAbsolutePath()+" already exists.");
-            return false;
-        }
+        if(m_testMode){
+            // check that test mzdb file does not exist
+            File mzdbFile = new File(FileManager.TEST_MZDB);
+            if (mzdbFile!= null && mzdbFile.exists()) {
+                m_taskError = new TaskError("Test mzdb file corresponding to " + m_file.getAbsolutePath() + " already exists.");
+                return false;
+            }
+            m_outputMzdbFilePath = mzdbFile.getAbsolutePath();
 
-        // delete mzdb tmp file if necessary
-        String mzdbTmpFilePath = path.substring(0,index+1)+"mzdb.tmp";
-        File tempFile = new File(mzdbTmpFilePath);
-        if (tempFile.exists()) {
-            FileUtility.forceDeleteFile(tempFile);
-        }
+            // delete mzdb tmp file if necessary
+            File tempFile = new File(FileManager.TEST_MZDB_TMP);
+            if (tempFile.exists()) {
+                FileUtility.forceDeleteFile(tempFile);
+            }
+            m_outputTempFilePath = tempFile.getAbsolutePath();
+        } else {
+            // check that corresponding converted file does not exist
+            String path = m_file.getAbsolutePath();
+            int index = path.lastIndexOf(".");
+            String mzdbFilePath = path.substring(0, index + 1) + "mzdb";
+            File mzdbFile = new File(mzdbFilePath);
+            if (mzdbFile.exists()) {
+                m_taskError = new TaskError("Mzdb file corresponding to " + m_file.getAbsolutePath() + " already exists.");
+                return false;
+            }
+            m_outputMzdbFilePath = mzdbFilePath;
 
+            // delete mzdb tmp file if necessary
+            String mzdbTmpFilePath = path.substring(0, index + 1) + "mzdb.tmp";
+            File tempFile = new File(mzdbTmpFilePath);
+            if (tempFile.exists()) {
+                FileUtility.forceDeleteFile(tempFile);
+            }
+            m_outputTempFilePath = mzdbTmpFilePath;
+        }
 
         return true;
     }
@@ -141,14 +162,16 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
         }
 
         if (m_conversionProcess != null && m_conversionProcess.exitValue() == 0) {
-            File tmpFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb" + ".tmp");
-            File mzdbFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb");
+//            File tmpFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb" + ".tmp");
+//            File mzdbFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb");
+            File tmpFile = new File(m_outputTempFilePath);
+            File mzdbFile = new File(m_outputMzdbFilePath);
             if (tmpFile.exists()) {
                 String log = tmpFile.getAbsolutePath() + " size is " + tmpFile.length() + " bytes";
                 m_logger.debug(log);
                 m_taskInfo.addLog(log);
 
-                if (!tmpFile.renameTo(new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb"))) {
+                if (!tmpFile.renameTo(mzdbFile)) {
                     m_taskError = new TaskError("Temp File Renaming Failure", "File " + tmpFile.getAbsolutePath() + " could not be renamed.");
                     String log2 = "File " + tmpFile.getAbsolutePath() + " could not be renamed.";
                     m_logger.debug(log2);
@@ -191,7 +214,8 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
 
             String architecture = GenericUtil.getSystemArchitecture();
             if (architecture.contains("64")) {
-                m_conversionProcess = new ProcessBuilder(ConfigurationManager.getConverterPath(), "-i", m_file.getAbsolutePath(), "-o", m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb.tmp").start();
+                m_conversionProcess = new ProcessBuilder(ConfigurationManager.getConverterPath(), "-i", m_file.getAbsolutePath(), "-o", m_outputTempFilePath).start();
+//                m_conversionProcess = new ProcessBuilder(ConfigurationManager.getConverterPath(), "-i", m_file.getAbsolutePath(), "-o", m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb.tmp").start();
                 usedConverter = ConfigurationManager.getConverterPath();
             } else {
                 m_taskError = new TaskError("This installation package is not supported by this processor type. Contact your administrator.");

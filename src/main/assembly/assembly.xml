@@ -15,9 +15,12 @@
         <fileSet>
             <directory>${project.build.directory}</directory>
             <includes>
+                <include>*.sh</include>
+                <include>*.bat</include>
                 <include>*.jar</include>
+                <include>*.xml</include>
             </includes>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory></outputDirectory>
         </fileSet>
 
         <!-- Module configuration (from resources) -->
@@ -26,13 +29,13 @@
             <outputDirectory>/converter</outputDirectory>
         </fileSet>
         <!-- Module icons (from resources) -->
-        <fileSet>
-            <directory>${project.build.directory}/icons</directory>
-            <includes>
-                <include>*.png</include>
-            </includes>
-            <outputDirectory>/icons</outputDirectory>
-        </fileSet>
+<!--        <fileSet>-->
+<!--            <directory>${project.build.directory}/icons</directory>-->
+<!--            <includes>-->
+<!--                <include>*.png</include>-->
+<!--            </includes>-->
+<!--            <outputDirectory>/icons</outputDirectory>-->
+<!--        </fileSet>-->
         <fileSet> <!-- config file -->
             <directory>${project.build.directory}/config</directory>
             <includes>
@@ -40,13 +43,17 @@
             </includes>
             <outputDirectory>/config</outputDirectory>
         </fileSet>
-        <fileSet> <!-- misc files -->
-            <directory>${project.build.directory}/misc</directory>
-            <includes>
-                <include>*.template</include>
-            </includes>
-            <outputDirectory>/misc</outputDirectory>
+        <fileSet> <!-- samples file -->
+            <directory>${project.build.directory}/samples</directory>
+            <outputDirectory>/samples</outputDirectory>
         </fileSet>
+<!--        <fileSet> &lt;!&ndash; misc files &ndash;&gt;-->
+<!--            <directory>${project.build.directory}/misc</directory>-->
+<!--            <includes>-->
+<!--                <include>*.template</include>-->
+<!--            </includes>-->
+<!--            <outputDirectory>/misc</outputDirectory>-->
+<!--        </fileSet>-->
 
 
         <!-- Module dependencies copied by maven-dependency-plugin -->
@@ -56,11 +63,11 @@
         </fileSet>
 
         <!-- Launching scripts with filtering to replace project.version properties -->
-        <fileSet>
-            <directory>${basedir}/scripts</directory>
-            <outputDirectory>/</outputDirectory>
-            <filtered>true</filtered>
-        </fileSet>
+<!--        <fileSet>-->
+<!--            <directory>${basedir}/script</directory>-->
+<!--            <outputDirectory>/</outputDirectory>-->
+<!--            <filtered>true</filtered>-->
+<!--        </fileSet>-->
     </fileSets>
 
 </assembly>
