@@ -74,6 +74,9 @@ public class ConfigurationManager {
     private static ArrayList<String> path_labels;
     
     private static String converter_path = "." + File.separator + "converter" + File.separator + "mzdb_x64_0.9.7" + File.separator + "raw2mzDB.exe";
+
+    private static String converter_options;
+
     
     private static String monitor_path = "." + File.separator;
     
@@ -210,7 +213,16 @@ public class ConfigurationManager {
     public static ArrayList<String> getPathLabels() {
         return path_labels;
     }
-    
+
+
+    public static void setConverterOptions(String s) {
+        converter_options = s;
+    }
+
+    public static String getConverterOptions() {
+        return converter_options;
+    }
+
     public static void setConverterPath(String s) {
         converter_path = s;
     }
@@ -326,7 +338,10 @@ public class ConfigurationManager {
             
             ConfigurationManager.setConverterPath(prop.getProperty("CONVERTER_PATH") != null ? prop.getProperty("CONVERTER_PATH") : converter_path);
             logger.debug(converter_path);
-            
+
+            ConfigurationManager.setConverterOptions(prop.getProperty("CONVERTER_OPTIONS") != null ? prop.getProperty("CONVERTER_OPTIONS") : "");
+            logger.debug(converter_path);
+
             ConfigurationManager.setMonitorPath(prop.getProperty("MONITOR_PATH") != null ? prop.getProperty("MONITOR_PATH") : monitor_path);
             logger.debug(monitor_path);
             
@@ -397,6 +412,7 @@ public class ConfigurationManager {
             prop.setProperty("FULLSCREEN", String.valueOf(ConfigurationManager.getFullscreen()));
             prop.setProperty("RESTRICTED", String.valueOf(ConfigurationManager.getRestricted()));
             prop.setProperty("CONVERTER_PATH", ConfigurationManager.getConverterPath());
+            prop.setProperty("CONVERTER_OPTIONS", ConfigurationManager.getConverterOptions());
             prop.setProperty("MONITOR_PATH", ConfigurationManager.getMonitorPath());
             prop.setProperty("MZ_TOLERANCE", String.valueOf(ConfigurationManager.getMzTolerance()));
             prop.setProperty("INTENSITY_CUTOFF", String.valueOf(ConfigurationManager.getIntensityCutoff()));

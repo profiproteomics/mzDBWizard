@@ -121,9 +121,10 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private JTextField m_mzTolerance, m_intensityCutoff;
 
     //CONVERSION OPERATION VARIABLES
-    private JTextField m_converter;
+    private JTextField m_converterTxtField;
+    private JTextField m_converterOptionTxtField;
     private JCheckBox m_convertOperationCheckbox;
-    private boolean m_convertOperation;
+    private boolean m_doConvert;
     private JButton m_converterButton;
 
     //UPLOAD OPERATION VARIABLES
@@ -202,7 +203,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
             ConfigurationManager.setConvertOperation(m_convertOperationCheckbox.isSelected());
             if (m_convertOperationCheckbox.isSelected()) {
-                ConfigurationManager.setConverterPath(m_converter.getText());
+                ConfigurationManager.setConverterPath(m_converterTxtField.getText());
+                ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
             }
 
             ConfigurationManager.setUploadOperation(m_uploadOperationCheckbox.isSelected());
@@ -283,7 +285,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
                 }
 
                 if (f.getAbsolutePath().toLowerCase().endsWith(".raw") || f.getAbsolutePath().toLowerCase().endsWith(".wiff") || f.getAbsolutePath().toLowerCase().endsWith(".d")) {
-                    if (m_convertOperation) {
+                    if (m_doConvert) {
                         m_pendingTasks.add(new PendingTask(recoveredFiles.get(i).getAbsolutePath(), Action.CONVERSION));
                     }
                 } else if (f.getAbsolutePath().toLowerCase().endsWith(".mzdb")) {
@@ -478,25 +480,17 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private JPanel initConvertOperationPanel() {
         JPanel convertOperationPanel = new JPanel();
         convertOperationPanel.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.BOTH;
-        c.insets = new java.awt.Insets(5, 5, 5, 5);
-
-        c.weighty = 0;
-        c.gridy = 0;
 
         JLabel converterLabel = new JLabel("Converter : ");
-
         File converterFile = new File(ConfigurationManager.getConverterPath());
 
-        m_converter = new JTextField((converterFile.exists()) ? converterFile.getAbsolutePath() : "Converter not selected!");
-        m_converter.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        m_converter.setBackground(Color.WHITE);
-        m_converter.setFocusable(false);
-        m_converter.setToolTipText("Click to select converter!");
+        m_converterTxtField = new JTextField((converterFile.exists()) ? converterFile.getAbsolutePath() : "Converter not selected!");
+        m_converterTxtField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        m_converterTxtField.setBackground(Color.WHITE);
+        m_converterTxtField.setFocusable(false);
+        m_converterTxtField.setToolTipText("Click to select converter!");
 
-        m_converter.addMouseListener(new MouseAdapter() {
+        m_converterTxtField.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 openConverterChooserDialog();
@@ -513,15 +507,15 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             }
         });
 
-        m_convertOperation = ConfigurationManager.getConvertOperation();
+        m_doConvert = ConfigurationManager.getConvertOperation();
         m_convertOperationCheckbox = new JCheckBox("Convert");
-        m_convertOperationCheckbox.setSelected(m_convertOperation);
+        m_convertOperationCheckbox.setSelected(m_doConvert);
         m_convertOperationCheckbox.setFocusable(false);
         m_convertOperationCheckbox.addItemListener(new ItemListener() {
 
             @Override
             public void itemStateChanged(ItemEvent ie) {
-                m_convertOperation = m_convertOperationCheckbox.isSelected();
+                m_doConvert = m_convertOperationCheckbox.isSelected();
                 updateConversionOptions();
             }
 
@@ -529,20 +523,38 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         updateConversionOptions();
 
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.CENTER;
+        c.fill = GridBagConstraints.BOTH;
+        c.insets = new java.awt.Insets(5, 5, 5, 5);
+
+        c.weighty = 0;
+        c.gridy = 0;
+
         c.weightx = 0;
         c.gridx = 0;
-
         convertOperationPanel.add(converterLabel, c);
 
         c.weightx = 1;
-        c.gridx = 1;
-
-        convertOperationPanel.add(m_converter, c);
+        c.gridx++;
+        convertOperationPanel.add(m_converterTxtField, c);
 
         c.weightx = 0;
-        c.gridx = 2;
-
+        c.gridx++;
         convertOperationPanel.add(m_converterButton, c);
+
+        c.gridx = 0;
+        c.gridy++;
+        c.weightx = 0;
+        JLabel converterOptionLabel = new JLabel("Options : ");
+        convertOperationPanel.add(converterOptionLabel, c);
+
+
+        c.weightx = 1;
+        c.gridx++;
+        m_converterOptionTxtField = new JTextField("");
+        m_converterOptionTxtField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        convertOperationPanel.add(m_converterOptionTxtField, c);
 
         convertOperationPanel.setBorder(new ComponentTitledBorder(m_convertOperationCheckbox, convertOperationPanel, BorderFactory.createEtchedBorder()));
 
@@ -550,8 +562,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private void updateConversionOptions() {
-        m_converter.setEnabled(m_convertOperation);
-        m_converterButton.setEnabled(m_convertOperation);
+        m_converterTxtField.setEnabled(m_doConvert);
+        m_converterButton.setEnabled(m_doConvert);
     }
 
     private JPanel initMgfOperationPanel() {
@@ -925,7 +937,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_configuration.setRecursiveWatching(m_recursiveCheckBox.isSelected());
 
         m_configuration.setConvert(m_convertOperationCheckbox.isSelected());
-        m_configuration.setConverterUrl(m_converter.getText());
+        m_configuration.setConverterUrl(m_converterTxtField.getText());
 
         m_configuration.setExportMgf(m_mgfOperationCheckbox.isSelected());
         m_configuration.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
@@ -1054,7 +1066,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private void openConverterChooserDialog() {
         File exe = FileUtility.chooseConverter();
         if (exe != null) {
-            m_converter.setText(exe.getAbsolutePath());
+            m_converterTxtField.setText(exe.getAbsolutePath());
             m_convertOperationCheckbox.setSelected(true);
             repaint();
         }
@@ -1068,7 +1080,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private boolean validateJComponents() {
-        if (m_monitoredDirectory.getText().length() == 0 || m_converter.getText().length() == 0) {
+        if (m_monitoredDirectory.getText().length() == 0 || m_converterTxtField.getText().length() == 0) {
             JOptionPane.showMessageDialog(this, "Selected monitored directory or converter is invalid, please review your selections.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -1119,7 +1131,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     public String getConverterURL() {
-        return m_converter.getText();
+        return m_converterTxtField.getText();
     }
 
     public String getPathLabel() {
@@ -1169,10 +1181,10 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private boolean validateOperations() {
-        if (!(m_convertOperation || m_mgfOperation || m_uploadOperation)) {
+        if (!(m_doConvert || m_mgfOperation || m_uploadOperation)) {
             JOptionPane.showMessageDialog(this, "Select at least one operation.", "Invalid configuration", JOptionPane.ERROR_MESSAGE);
         }
-        return m_convertOperation || m_mgfOperation || m_uploadOperation;
+        return m_doConvert || m_mgfOperation || m_uploadOperation;
     }
 
 }

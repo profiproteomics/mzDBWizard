@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -214,8 +216,16 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
 
             String architecture = GenericUtil.getSystemArchitecture();
             if (architecture.contains("64")) {
-                m_conversionProcess = new ProcessBuilder(ConfigurationManager.getConverterPath(), "-i", m_file.getAbsolutePath(), "-o", m_outputTempFilePath).start();
-//                m_conversionProcess = new ProcessBuilder(ConfigurationManager.getConverterPath(), "-i", m_file.getAbsolutePath(), "-o", m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb.tmp").start();
+                List<String> command = new ArrayList<>();
+                command.add(ConfigurationManager.getConverterPath());
+                if(ConfigurationManager.getConverterOptions() != null && !ConfigurationManager.getConverterOptions().isEmpty())
+                    command.add(ConfigurationManager.getConverterOptions());
+                command.add("-i");
+                command.add(m_file.getAbsolutePath());
+                command.add("-o");
+                command.add(m_outputTempFilePath);
+
+                m_conversionProcess = new ProcessBuilder().command(command).start();
                 usedConverter = ConfigurationManager.getConverterPath();
             } else {
                 m_taskError = new TaskError("This installation package is not supported by this processor type. Contact your administrator.");
