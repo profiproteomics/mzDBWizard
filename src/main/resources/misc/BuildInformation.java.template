@@ -15,12 +15,12 @@ public class BuildInformation implements IVersion {
 
     @Override
     public String getModuleName() {
-        return "@moduleName@";
+        return "_moduleName_";
     }
 
     @Override
     public String getVersion() {
-        return "@version@";
+        return "_version_";
     }
     
 }
