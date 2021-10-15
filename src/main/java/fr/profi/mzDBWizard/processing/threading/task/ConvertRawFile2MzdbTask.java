@@ -218,8 +218,14 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             if (architecture.contains("64")) {
                 List<String> command = new ArrayList<>();
                 command.add(ConfigurationManager.getConverterPath());
-                if(ConfigurationManager.getConverterOptions() != null && !ConfigurationManager.getConverterOptions().isEmpty())
-                    command.add(ConfigurationManager.getConverterOptions());
+                if(ConfigurationManager.getConverterOptions() != null && !ConfigurationManager.getConverterOptions().isEmpty()) {
+                    String options = ConfigurationManager.getConverterOptions();
+                    String[] eachOptions  = options.split(" ");
+                    for (int i = 0; i<eachOptions.length; i++){
+                        if(!eachOptions[i].trim().isEmpty())
+                            command.add(eachOptions[i].trim());
+                    }
+                }
                 command.add("-i");
                 command.add(m_file.getAbsolutePath());
                 command.add("-o");

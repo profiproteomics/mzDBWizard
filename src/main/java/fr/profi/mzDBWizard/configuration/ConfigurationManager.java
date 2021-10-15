@@ -304,7 +304,7 @@ public class ConfigurationManager {
             File cfgFile =new File(FileManager.CONFIGURATION_FILE);
             is =  new FileInputStream(cfgFile);
 
-            logger.debug("Loading Configuration File: " + FileManager.CONFIGURATION_FILE + " ..");
+            logger.debug("Loading Configuration File: " + cfgFile.getAbsolutePath() + " ..");
             
             prop.load(is);
             
@@ -332,7 +332,7 @@ public class ConfigurationManager {
             
             ConfigurationManager.setFullscreen(Boolean.parseBoolean(prop.getProperty("FULLSCREEN") != null ? prop.getProperty("FULLSCREEN") : String.valueOf(fullscreen)));
             logger.debug(String.valueOf(fullscreen));
-            
+
             ConfigurationManager.setRestricted(Boolean.parseBoolean(prop.getProperty("RESTRICTED") != null ? prop.getProperty("RESTRICTED") : String.valueOf(restricted)));
             logger.debug(String.valueOf(restricted));
             
@@ -374,7 +374,7 @@ public class ConfigurationManager {
             logger.debug(String.valueOf(process_pending));
             
             ConfigurationManager.setDebugMode(Boolean.parseBoolean(prop.getProperty("DEBUG_MODE") != null ? prop.getProperty("DEBUG_MODE") : String.valueOf(debug_mode)));
-            logger.debug(String.valueOf(process_pending));
+            logger.debug(String.valueOf(debug_mode));
             
         } catch (FileNotFoundException ex) {
             logger.error("FileNotFoundException while loading properties!", ex);

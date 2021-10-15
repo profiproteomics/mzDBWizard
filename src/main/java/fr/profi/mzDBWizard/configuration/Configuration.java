@@ -30,7 +30,7 @@ public class Configuration {
         MAIN_PRECURSOR_MZ, SELECTED_ION_MZ, MZDB_ACCESS_REFINED_PRECURSOR_MZ, THERMO_REFINED_PRECURSOR_MZ, PROLINE_REFINED_PRECURSOR_MZ
     }
     
-    private String m_monitoredUrl, m_converterUrl, m_host, m_mountingPoint;
+    private String m_monitoredUrl, m_converterUrl, m_converterOptions, m_host, m_mountingPoint;
     private boolean m_recursiveMonitoring, m_convert, m_exportMgf, m_uploadMzdb, m_deleteRaw, m_deleteMzdb, m_processPending;
     private PrecursorComputationMethod m_precursorComputationMethod;
     private float m_mzTolerance, m_intensityCutoff;
@@ -44,7 +44,10 @@ public class Configuration {
         m_converterUrl = s;
     }
 
-    
+    public void setConverterOptions(String s){
+        m_converterOptions = s;
+    }
+
     public void setHost(String s){
         m_host = s;
     }
@@ -126,6 +129,7 @@ public class Configuration {
         modelData.add(new AttributeEntry("Convert", String.valueOf(m_convert)));
         if(m_convert){
             modelData.add(new AttributeEntry("Converter", m_converterUrl));
+            modelData.add(new AttributeEntry("Converter Options", m_converterOptions));
         }
         modelData.add(new AttributeEntry("Export mgf", String.valueOf(m_exportMgf)));
         if(m_exportMgf){

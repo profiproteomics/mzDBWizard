@@ -552,7 +552,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         c.weightx = 1;
         c.gridx++;
-        m_converterOptionTxtField = new JTextField("");
+        String options = (ConfigurationManager.getConverterOptions() != null && !ConfigurationManager.getConverterOptions().isEmpty()) ? ConfigurationManager.getConverterOptions() : "";
+        m_converterOptionTxtField = new JTextField(options);
         m_converterOptionTxtField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         convertOperationPanel.add(m_converterOptionTxtField, c);
 
@@ -938,6 +939,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         m_configuration.setConvert(m_convertOperationCheckbox.isSelected());
         m_configuration.setConverterUrl(m_converterTxtField.getText());
+        m_configuration.setConverterOptions(m_converterOptionTxtField.getText());
 
         m_configuration.setExportMgf(m_mgfOperationCheckbox.isSelected());
         m_configuration.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
@@ -1025,8 +1027,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         });
 
-        m_processPendingCheckBox.setSelected(false);
-        m_pendingTasksTable.setEnabled(false);
+        m_processPendingCheckBox.setSelected(ConfigurationManager.getProcessPending());
+        m_pendingTasksTable.setEnabled(ConfigurationManager.getProcessPending());
 
         m_triggerPermission = true;
 
