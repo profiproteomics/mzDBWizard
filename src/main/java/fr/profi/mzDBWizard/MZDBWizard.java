@@ -33,10 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
-import javax.swing.BorderFactory;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 
 /**
@@ -136,21 +133,18 @@ public class MZDBWizard {
 
                                 @Override
                                 public boolean mustBeCalledInAWT() {
-                                    return false;
+                                    return true;
                                 }
 
                                 @Override
                                 public void run(boolean success, long taskId) {
                                     if (success) {
-                                        SwingUtilities.invokeLater(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                waitDialog.setVisible(false);
-                                                MainFrame frame = new MainFrame(new Dimension(1280, 720), new Dimension(1280, 720));
-                                                frame.setVisible(true);
-                                            }
-                                        });
+                                        waitDialog.setVisible(false);
+                                        MainFrame frame = new MainFrame(new Dimension(1280, 720), new Dimension(1280, 720));
+                                        frame.setVisible(true);
                                     } else {
+                                        waitDialog.setVisible(false);
+                                        JOptionPane.showMessageDialog(null, "Something is wrong with raw2mzDB.exe. See your system administrator...", "Converter Test Error", JOptionPane.ERROR_MESSAGE);
                                         logger.error("Something is wrong with raw2mzDB.exe. Call your administrator!");
                                         System.exit(1);
                                     }
@@ -188,7 +182,7 @@ public class MZDBWizard {
                 }
 
             }});
-        
+
     }
 
 }
