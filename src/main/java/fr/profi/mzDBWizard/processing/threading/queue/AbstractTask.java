@@ -19,6 +19,7 @@ package fr.profi.mzDBWizard.processing.threading.queue;
 import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
@@ -40,9 +41,15 @@ public abstract class AbstractTask extends AbstractTaskWithInfo {
     protected TaskError m_taskError = null;
     protected int m_errorId = -1;
 
+    private final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass().toString());
+
+
     public AbstractTask(AbstractCallback callback, TaskInfo taskInfo) {
         super(taskInfo);
         m_callback = callback;
+
+
+        logger.debug("Task Info "+taskInfo.getTaskDescription());
 
 
         m_idIncrement++;

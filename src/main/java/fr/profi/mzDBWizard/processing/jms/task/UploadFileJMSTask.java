@@ -73,10 +73,16 @@ public class UploadFileJMSTask extends AbstractJMSTask {
             message.setJMSReplyTo(m_replyQueue);
             message.setStringProperty(JMSConnectionManager.PROLINE_SERVICE_NAME_KEY, SERVICE_NAME);
 
-            message.setStringProperty("dest_file_name", FilenameUtils.getName(uploadFile.getAbsolutePath()));
+            //JPM.WART : rename file extension : we always want .mzdb (and not .mzDB)
+            String destFileName = uploadFile.getAbsolutePath();
+            if (destFileName.endsWith(".mzDB")) {
+                destFileName = destFileName.substring(0,destFileName.length()-2)+"db";
+            }
+
+            message.setStringProperty("dest_file_name", FilenameUtils.getName(destFileName));
 
             //this needs checking!
-            String destFolderPath = m_pathLabel + File.separator + uploadFile.getAbsolutePath().substring(uploadFile.getAbsolutePath().indexOf(m_monitorDirectoryPath.toAbsolutePath().toString()) + m_monitorDirectoryPath.toAbsolutePath().toString().length(), uploadFile.getAbsolutePath().lastIndexOf(FilenameUtils.getName(uploadFile.getAbsolutePath())));
+            String destFolderPath = m_pathLabel + File.separator + destFileName.substring(destFileName.indexOf(m_monitorDirectoryPath.toAbsolutePath().toString()) + m_monitorDirectoryPath.toAbsolutePath().toString().length(), destFileName.lastIndexOf(FilenameUtils.getName(destFileName)));
             message.setStringProperty("dest_folder_path", destFolderPath);
 
 

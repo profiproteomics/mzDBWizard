@@ -17,6 +17,7 @@
 package fr.profi.mzDBWizard.processing.threading.queue;
 
 import fr.profi.mzDBWizard.processing.info.TaskError;
+import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.info.TaskInfoManager;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,9 @@ public class TaskManagerThread extends Thread {
     private Queue<AbstractTask> m_actions;
 
     private HashMap<Class, HashSet<String>> m_registeredActions = new HashMap<>();
+
+    private LinkedList<OldUpload> m_oldUploadList = new LinkedList<>();
+
 
     private WorkerPool m_workerPool = null;
 
@@ -71,6 +75,34 @@ public class TaskManagerThread extends Thread {
             return false;
         }
 
+        // specific case for Upload actions : do not redo it if the upload is recent.
+        if (action.getTaskInfo().getTaskType() == TaskInfo.UPLOAD_TASK) {
+
+            // clean oldUploadList
+            long timeStamp5minAgo = System.currentTimeMillis() - 5 * 60000;
+            while (true) {
+                OldUpload oldUpload = m_oldUploadList.peek();
+                if (oldUpload == null) {
+                    break;
+                }
+                if (oldUpload.older(timeStamp5minAgo)) {
+                    m_oldUploadList.removeFirst();
+                } else {
+                    break;
+                }
+            }
+
+            // look for the action
+            for (OldUpload oldUpload : m_oldUploadList) {
+                if (oldUpload.m_actionKey.equals(action.getUniqueKey())) {
+                    // Upload done recently (5minutes ago max)
+                    return false;
+                }
+            }
+
+        }
+
+
         // we register
         registerSet.add(action.getUniqueKey());
         return true;
@@ -79,6 +111,7 @@ public class TaskManagerThread extends Thread {
     private void unregister(AbstractTask action) {
         HashSet<String> registerSet = m_registeredActions.get(action.getClass());
         registerSet.remove(action.getUniqueKey());
+
     }
 
     /**
@@ -87,14 +120,31 @@ public class TaskManagerThread extends Thread {
     @Override
     public void run() {
         try {
+
+            Object workerPoolMutex = m_workerPool.getMutex();
             while (true) {
                 AbstractTask action = null;
                 synchronized (this) {
 
+                    actionSearch:
                     while (true) {
 
                         // look for a task to be done
                         if (!m_actions.isEmpty()) {
+
+                            // try to get the first action with thread available
+                            synchronized (workerPoolMutex) {
+                                for (AbstractTask actionCur : m_actions) {
+                                    if (m_workerPool.getWorkerThread(actionCur.getType()) != null) {
+                                        // thread is available for this action
+                                        m_actions.remove(actionCur);
+                                        action = actionCur;
+                                        break actionSearch;
+                                    }
+                                }
+                            }
+
+                            // take the first action, even if thread is not available for this action
                             action = m_actions.poll();
                             break;
                         }
@@ -103,10 +153,6 @@ public class TaskManagerThread extends Thread {
                     notifyAll();
                 }
 
-
-
-
-                Object workerPoolMutex = m_workerPool.getMutex();
                 synchronized (workerPoolMutex) {
 
                     WorkerThread workerThread = null;
@@ -121,8 +167,6 @@ public class TaskManagerThread extends Thread {
 
                     workerPoolMutex.notifyAll();
                 }
-
-
 
             }
 
@@ -141,6 +185,14 @@ public class TaskManagerThread extends Thread {
 
             TaskError taskError = task.getTaskError();
             task.getTaskInfo().setFinished((taskError==null), taskError, true);
+
+            if (taskError==null) {
+                // If upload succeeded, we can not retry it during 5 minutes
+                if (task.getTaskInfo().getTaskType() == TaskInfo.UPLOAD_TASK) {
+                    m_oldUploadList.add(new OldUpload(task.getUniqueKey()));
+                }
+            }
+
 
             notifyAll();
         }
@@ -170,7 +222,20 @@ public class TaskManagerThread extends Thread {
     }
 
 
+    private class OldUpload {
 
+        private long m_timestamp;
+        private String m_actionKey;
+
+        public OldUpload(String actionKey) {
+            m_timestamp = System.currentTimeMillis();
+            m_actionKey = actionKey;
+        }
+
+        public boolean older(long timestamp) {
+            return m_timestamp<timestamp;
+        }
+    }
 
 
 }

@@ -181,6 +181,9 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
 
                     return false;
                 }
+            } else {
+                //JPM.WART : raw2mzdb.exe automatically rename .mzdb.tmp file to .mzDB
+                mzdbFile.renameTo(mzdbFile);
             }
 
             if (m_callback instanceof ConvertRawFile2MzdbCallback) {

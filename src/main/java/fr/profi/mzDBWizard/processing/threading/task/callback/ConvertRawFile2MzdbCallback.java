@@ -18,11 +18,9 @@ package fr.profi.mzDBWizard.processing.threading.task.callback;
 
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.filelookup.WatcherPoolMonitor;
 import fr.profi.mzDBWizard.processing.threading.task.ConvertMzdb2MgfTask;
 import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
-import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
 
 import java.io.File;
 
@@ -67,7 +65,7 @@ public class ConvertRawFile2MzdbCallback extends AbstractCallback {
 
             UploadMzdbCallback callback = new UploadMzdbCallback();
             callback.setMzdbFile(m_mzdbFile);
-            TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, m_mzdbFile, WatcherPoolMonitor.getDirectoryWatcher().getPath(), ConfigurationManager.getMountingPointLabel()));
+            // JPM.TEST TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, m_mzdbFile, WatcherPoolMonitor.getDirectoryWatcher().getPath(), ConfigurationManager.getMountingPointLabel()));
 
             return;
         }
