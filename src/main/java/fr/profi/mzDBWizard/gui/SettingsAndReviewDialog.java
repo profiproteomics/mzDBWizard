@@ -22,6 +22,7 @@ import fr.profi.mzDBWizard.gui.pendingtask.PendingTaskTypeRenderer;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel;
 import fr.profi.mzDBWizard.gui.util.ComponentTitledBorder;
 import fr.profi.mzDBWizard.gui.util.GenericTableRenderer;
+import fr.profi.mzDBWizard.processing.jms.queue.ConnectionListener;
 import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel.Action;
 import fr.profi.mzDBWizard.gui.util.DefaultIcons;
@@ -823,6 +824,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_refreshMountingPointsButton.setEnabled(false);
         m_refreshMountingPointsButton.setIcon(DefaultIcons.getSingleton().getIcon(DefaultIcons.HOURGLASS));
 
+        JMSConnectionManager.getJMSConnectionManager().closeConnection(); //In case already connected !
 
         JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText().trim());
 
