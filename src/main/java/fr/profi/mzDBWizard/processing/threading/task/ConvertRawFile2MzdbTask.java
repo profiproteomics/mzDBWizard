@@ -20,14 +20,11 @@ import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
 import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.util.GenericUtil;
 import fr.profi.mzDBWizard.util.MzDBUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -39,9 +36,7 @@ import java.util.List;
  *
  * @author JPM235353
  */
-public class ConvertRawFile2MzdbTask extends AbstractTask {
-
-    private File m_file;
+public class ConvertRawFile2MzdbTask extends AbstractFileTask {
 
     private Process m_conversionProcess = null;
 
@@ -49,25 +44,14 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
     private String m_outputTempFilePath = null;
     private String m_outputMzdbFilePath = null;
 
-    private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
-
     public ConvertRawFile2MzdbTask(AbstractCallback callback, File f) {
-        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true,  TaskInfo.VisibilityEnum.VISIBLE));
-
-        m_file = f;
+        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true,  TaskInfo.VisibilityEnum.VISIBLE), f);
     }
 
     public ConvertRawFile2MzdbTask(AbstractCallback callback, File f, boolean testMode) {
-        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true,  testMode ? TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR: TaskInfo.VisibilityEnum.VISIBLE));
-
-        m_file = f;
+        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true,  testMode ? TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR: TaskInfo.VisibilityEnum.VISIBLE), f);
         m_testMode = testMode;
     }
-
-    public String getUniqueKey() {
-        return m_file.getName().toLowerCase();
-    }
-
 
     @Override
     public int getType() {
@@ -76,19 +60,17 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
 
 
     @Override
-    public boolean precheck() {
+    public boolean precheck() throws Exception {
 
-        // check that file exists
-        if (! m_file.exists()) {
-            m_taskError = new TaskError("File "+ m_file.getAbsolutePath()+" does not exist.");
+        boolean superResult = super.precheck();
+        if(!superResult)
             return false;
-        }
 
         if(m_testMode){
             // check that test mzdb file does not exist
             File mzdbFile = new File(MzDBUtil.TEST_MZDB);
             if (mzdbFile!= null && mzdbFile.exists()) {
-                m_taskError = new TaskError("Test mzdb file corresponding to " + m_file.getAbsolutePath() + " already exists.");
+                m_taskError = new TaskError("Test mzdb file corresponding to " + getFile().getAbsolutePath() + " already exists.");
                 return false;
             }
             m_outputMzdbFilePath = mzdbFile.getAbsolutePath();
@@ -101,12 +83,12 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             m_outputTempFilePath = tempFile.getAbsolutePath();
         } else {
             // check that corresponding converted file does not exist
-            String path = m_file.getAbsolutePath();
+            String path = getFile().getAbsolutePath();
             int index = path.lastIndexOf(".");
             String mzdbFilePath = path.substring(0, index + 1) + "mzdb";
             File mzdbFile = new File(mzdbFilePath);
             if (mzdbFile.exists()) {
-                m_taskError = new TaskError("Mzdb file corresponding to " + m_file.getAbsolutePath() + " already exists.");
+                m_taskError = new TaskError("Mzdb file corresponding to " + getFile().getAbsolutePath() + " already exists.");
                 return false;
             }
             m_outputMzdbFilePath = mzdbFilePath;
@@ -124,27 +106,14 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
     }
 
     @Override
-    public boolean runTask() {
-
-        try {
-            return runTaskImplementation();
-        } catch (Exception e) {
-            m_taskError = new TaskError(e);
-            return false;
-        }
-    }
-    private boolean runTaskImplementation() throws Exception {
-
-        if (!precheck()) {
-            return false;
-        }
+    protected boolean runTaskImplementation() throws Exception {
 
         // check that the raw file has been completely copied on the disk
-        FileUtility.checkFileFinalization(m_file);
+        FileUtility.checkFileFinalization(getFile());
 
         // check minimum disk space
         if (!checkSufficientDiskSpace()) {
-            m_taskError = new TaskError("Insufficient disk space to convert "+ m_file.getAbsolutePath());
+            m_taskError = new TaskError("Insufficient disk space to convert "+ getFile().getAbsolutePath());
             return false;
         }
 
@@ -159,7 +128,7 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
                 Thread.sleep(2000);
             }
         } catch (InterruptedException ex) {
-            m_logger.error("File Finalization Interrupted!");
+            logger.error("File Finalization Interrupted!");
         }
 
         if (m_conversionProcess != null && m_conversionProcess.exitValue() == 0) {
@@ -169,13 +138,13 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             File mzdbFile = new File(m_outputMzdbFilePath);
             if (tmpFile.exists()) {
                 String log = tmpFile.getAbsolutePath() + " size is " + tmpFile.length() + " bytes";
-                m_logger.debug(log);
+                logger.debug(log);
                 m_taskInfo.addLog(log);
 
                 if (!tmpFile.renameTo(mzdbFile)) {
                     m_taskError = new TaskError("Temp File Renaming Failure", "File " + tmpFile.getAbsolutePath() + " could not be renamed.");
                     String log2 = "File " + tmpFile.getAbsolutePath() + " could not be renamed.";
-                    m_logger.debug(log2);
+                    logger.debug(log2);
                     m_taskInfo.addLog(log2);
 
                     return false;
@@ -186,23 +155,23 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             }
 
             if (m_callback instanceof ConvertRawFile2MzdbCallback) {
-                ((ConvertRawFile2MzdbCallback) m_callback).setRawFile(m_file);
+                ((ConvertRawFile2MzdbCallback) m_callback).setRawFile(getFile());
             }
 
         } else {
 
             m_taskError = new TaskError("Converter Failure", "Non-zero exit value.");
 
-            String log = "File converter for file " + m_file.getAbsolutePath() + " is not responding.";
+            String log = "File converter for file " + getFile().getAbsolutePath() + " is not responding.";
             m_taskInfo.addLog(log);
-            m_logger.info(log);
+            logger.info(log);
 
             return false;
         }
 
-        String log = "Converting for file: " + m_file.getAbsolutePath() + " has come to its end.";
+        String log = "Converting for file: " + getFile().getAbsolutePath() + " has come to its end.";
         m_taskInfo.addLog(log);
-        m_logger.info(log);
+        logger.info(log);
 
 
 
@@ -228,7 +197,7 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
                     }
                 }
                 command.add("-i");
-                command.add(m_file.getAbsolutePath());
+                command.add(getFile().getAbsolutePath());
                 command.add("-o");
                 command.add(m_outputTempFilePath);
 
@@ -245,14 +214,14 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             m_taskInfo.addLog("");
 
             String log = "Converter: " + usedConverter;
-            m_logger.info(log);
+            logger.info(log);
             m_taskInfo.addLog(log);
 
             InputStream standardOutputStream = m_conversionProcess.getInputStream();
             BufferedReader standardReader = new BufferedReader(new InputStreamReader(standardOutputStream));
             String line;
             while ((line = standardReader.readLine()) != null) {
-                m_logger.info(line);
+                logger.info(line);
                 m_taskInfo.addLog(line);
 
             }
@@ -264,8 +233,8 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             //m_logs.append("\n").append("------------------------------------------------------------------------").append("\n").append("WARNINGS & ERRORS").append("\n").append("------------------------------------------------------------------------").append("\n").append("\n");
 
             while ((errorLine = errorReader.readLine()) != null) {
-                m_logger.info("Warning:");
-                m_logger.info(errorLine);
+                logger.info("Warning:");
+                logger.info(errorLine);
                 m_taskInfo.addWarning("warning:");
                 m_taskInfo.addLog(errorLine);
 
@@ -274,9 +243,9 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             }
 
         } catch (IOException ex) {
-            m_taskError = new TaskError("Converter faced an IOException during conversion of " + m_file.getAbsolutePath() + ". Check input file's integrity.");
+            m_taskError = new TaskError("Converter faced an IOException during conversion of " + getFile().getAbsolutePath() + ". Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Converter Failure", "Converter faced an IOException. Check input file's integrity."));
-            m_logger.error("File convertion failed!");
+            logger.error("File convertion failed!");
             //m_logs.append("File convertion failed!" + "\n");
             return false;
         }
@@ -287,11 +256,7 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
 
 
     private boolean checkSufficientDiskSpace() {
-        if (m_file.getUsableSpace() / 1024 / 1024 > AVAILABLE_SPACE_THRESHOLD) {
-            return true;
-        } else {
-            return false;
-        }
+        return getFile().getUsableSpace() / 1024 / 1024 > AVAILABLE_SPACE_THRESHOLD;
     }
     private static final int AVAILABLE_SPACE_THRESHOLD = 3000;
 }

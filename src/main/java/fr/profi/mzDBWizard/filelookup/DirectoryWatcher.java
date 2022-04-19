@@ -33,7 +33,9 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
-import fr.profi.mzDBWizard.processing.threading.task.GenerateMgfFromMzdbTask;
+
+ import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
+ import fr.profi.mzDBWizard.processing.threading.task.GenerateMgfFromMzdbTask;
 import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
 import fr.profi.mzDBWizard.processing.threading.task.callback.GenerateMgfFromMzdbCallback;
@@ -83,30 +85,6 @@ public class DirectoryWatcher implements Runnable  {
 
     }
 
-    private void launchRawFileTasks(File rawFile){
-        if (ConfigurationManager.getConvertOperation()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new ConvertRawFile2MzdbTask(new ConvertRawFile2MzdbCallback(), rawFile));
-        }
-    }
-
-    private void launchMzdbFileTasks(File mzdbFile){
-
-        if (ConfigurationManager.getMgfOperation()) {
-            GenerateMgfFromMzdbCallback callback = new GenerateMgfFromMzdbCallback();
-            TaskManagerThread.getTaskManagerThread().addTask(new GenerateMgfFromMzdbTask(callback, mzdbFile));
-            callback.setMzdbFile(mzdbFile);
-
-        }
-        else if (ConfigurationManager.getUploadOperation()) {
-            UploadMzdbCallback callback = new UploadMzdbCallback();
-            callback.setMzdbFile(mzdbFile);
-            TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, mzdbFile, WatcherExecution.getInstance().getMonitoringDirectory(), ConfigurationManager.getMountingPointLabel()));
-
-        }
-        else if (ConfigurationManager.getDeleteMzdb()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(null, mzdbFile));
-        }
-    }
 
     private void registerSingleDirectory(Path dir) throws IOException {
         WatchKey key = dir.register(m_watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
@@ -125,11 +103,11 @@ public class DirectoryWatcher implements Runnable  {
                         String lowerPath = f.getAbsolutePath().toLowerCase();
                         if (lowerPath.endsWith(".raw") || lowerPath.endsWith(".wiff")) {
                             // we have a raw file
-                            launchRawFileTasks(f);
+                            FileProcessingExec.launchRawFileTasks(f);
 
                         } else if (lowerPath.endsWith(".mzdb")) {
                             // we have a mzdb file
-                            launchMzdbFileTasks(f);
+                            FileProcessingExec.launchMzdbFileTasks(f);
                         }
 
 
@@ -219,10 +197,10 @@ public class DirectoryWatcher implements Runnable  {
                     if (kind == ENTRY_CREATE) {
                         if (fileNameLowerCase.endsWith(".raw") || fileNameLowerCase.endsWith(".wiff")) {
                             // we have a raw file
-                            launchRawFileTasks(f);
+                            FileProcessingExec.launchRawFileTasks(f);
                         } else if (fileNameLowerCase.endsWith(".mzdb")) {
                             // we have a mzdb file
-                            launchMzdbFileTasks(f);
+                            FileProcessingExec.launchMzdbFileTasks(f);
                         }
                     }
 

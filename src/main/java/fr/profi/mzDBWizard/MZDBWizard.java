@@ -89,7 +89,7 @@ public class MZDBWizard {
                         FileUtility.forceDeleteFile(tempFile);
                     }
 
-                    if (ConfigurationManager.getConvertOperation()) {
+                    if (ConfigurationManager.getConvertMzdbOperation()) {
 
                         //JPM.TODO : TEST with another thread
                         File rawFile = new File(MzDBUtil.TEST_RAW);

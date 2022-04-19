@@ -195,7 +195,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
             ConfigurationManager.setProcessPending(m_processPendingCheckBox.isSelected());
 
-            ConfigurationManager.setConvertOperation(m_convertOperationCheckbox.isSelected());
+            ConfigurationManager.setConvertMzdbOperation(m_convertOperationCheckbox.isSelected());
             if (m_convertOperationCheckbox.isSelected()) {
                 ConfigurationManager.setConverterPath(m_converterTxtField.getText());
                 ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
@@ -208,7 +208,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
                 ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
             }
 
-            ConfigurationManager.setMgfOperation(m_mgfOperationCheckbox.isSelected());
+            ConfigurationManager.setGenerateMgfOperation(m_mgfOperationCheckbox.isSelected());
             if (m_mgfOperationCheckbox.isSelected()) {
                 ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
                 ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
@@ -218,7 +218,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
             ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
 
-            ConfigurationManager.setMgfOperation(m_mgfOperationCheckbox.isSelected());
+            ConfigurationManager.setGenerateMgfOperation(m_mgfOperationCheckbox.isSelected());
 
             ConfigurationManager.saveProperties();
             setVisible(false);
@@ -495,7 +495,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             }
         });
 
-        m_doConvert = ConfigurationManager.getConvertOperation();
+        m_doConvert = ConfigurationManager.getConvertMzdbOperation();
         m_convertOperationCheckbox = new JCheckBox("Convert");
         m_convertOperationCheckbox.setSelected(m_doConvert);
         m_convertOperationCheckbox.setFocusable(false);
@@ -563,7 +563,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         c.fill = GridBagConstraints.BOTH;
         c.insets = new java.awt.Insets(5, 5, 5, 5);
 
-        m_mgfOperation = ConfigurationManager.getMgfOperation();
+        m_mgfOperation = ConfigurationManager.getGenerateMgfOperation();
         m_mgfOperationCheckbox = new JCheckBox("Export mgf");
         m_mgfOperationCheckbox.setSelected(m_mgfOperation);
         m_mgfOperationCheckbox.setFocusable(false);
@@ -923,11 +923,11 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         ConfigurationManager.setMonitorPath(m_monitoredDirectory.getText());
         ConfigurationManager.setRecursiveWatching(m_recursiveCheckBox.isSelected());
 
-        ConfigurationManager.setConvertOperation(m_convertOperationCheckbox.isSelected());
+        ConfigurationManager.setConvertMzdbOperation(m_convertOperationCheckbox.isSelected());
         ConfigurationManager.setConverterPath(m_converterTxtField.getText());
         ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
 
-        ConfigurationManager.setMgfOperation(m_mgfOperationCheckbox.isSelected());
+        ConfigurationManager.setGenerateMgfOperation(m_mgfOperationCheckbox.isSelected());
         ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
         ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
 

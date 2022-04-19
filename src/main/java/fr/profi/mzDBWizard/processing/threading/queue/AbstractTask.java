@@ -42,7 +42,7 @@ public abstract class AbstractTask extends AbstractTaskWithInfo {
     protected TaskError m_taskError = null;
     protected int m_errorId = -1;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass().toString());
+    protected final Logger logger = LoggerFactory.getLogger(getClass().toString());
 
 
     public AbstractTask(AbstractCallback callback, TaskInfo taskInfo) {

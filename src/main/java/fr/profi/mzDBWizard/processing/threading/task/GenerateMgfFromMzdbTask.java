@@ -25,8 +25,7 @@ import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzdb.io.writer.mgf.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,20 +37,10 @@ import java.io.IOException;
  *
  * @author JPM235353
  */
-public class GenerateMgfFromMzdbTask extends AbstractTask {
-
-    private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
-
-    private File m_mzdbFile;
+public class GenerateMgfFromMzdbTask extends AbstractFileTask {
 
     public GenerateMgfFromMzdbTask(AbstractCallback callback, File mzdbFile) {
-        super(callback, new TaskInfo("Generate mgf from  "+mzdbFile.getName(), TaskInfo.GENERATE_TASK,true,  TaskInfo.VisibilityEnum.VISIBLE));
-
-        m_mzdbFile = mzdbFile;
-    }
-
-    public String getUniqueKey() {
-        return m_mzdbFile.getName().toLowerCase();
+        super(callback, new TaskInfo("Generate mgf from  "+mzdbFile.getName(), TaskInfo.GENERATE_TASK,true,  TaskInfo.VisibilityEnum.VISIBLE), mzdbFile);
     }
 
     @Override
@@ -60,36 +49,17 @@ public class GenerateMgfFromMzdbTask extends AbstractTask {
     }
 
     @Override
-    public boolean precheck() {
-        //JPM.TODO
-        // return  (FileUtility.verifyMzdbFile(m_file))
-        return true;
-    }
+    protected boolean runTaskImplementation() throws Exception {
 
-    @Override
-    public boolean runTask() {
-
-        try {
-            return runTaskImplementation();
-        } catch (Exception e) {
-            m_taskError = new TaskError(e);
-            return false;
-        }
-    }
-    private boolean runTaskImplementation() throws Exception {
-        if (!precheck()) {
-            return false;
-        }
-
-        m_logger.info("  -->  Generate MGF file from "+m_mzdbFile.getName());
+        logger.info("  -->  Generate MGF file from "+ getFile().getName());
         // check that the source file has been completely copied on the disk
-        FileUtility.checkFileFinalization(m_mzdbFile);
+        FileUtility.checkFileFinalization(getFile());
 
-        String log = "Starting to generate " + m_mzdbFile.getAbsolutePath() + " to .mgf format.";
-        m_logger.info(log);
+        String log = "Starting to generate " + getFile().getAbsolutePath() + " to .mgf format.";
+        logger.info(log);
         m_taskInfo.addLog(log);
 
-        return generateMgf(m_mzdbFile);
+        return generateMgf(getFile());
 
     }
 
@@ -101,7 +71,7 @@ public class GenerateMgfFromMzdbTask extends AbstractTask {
             writer.getMzDbReader().close();
 
             String log = " mgf file generated from "+ mzdbFile.getAbsolutePath() +".";
-            m_logger.info(log);
+            logger.info(log);
             m_taskInfo.addLog(log);
 
             return true;
@@ -109,15 +79,15 @@ public class GenerateMgfFromMzdbTask extends AbstractTask {
         } catch (SQLiteException | ClassNotFoundException ex) {
             m_taskError = new TaskError("Mgf generate Failure", "SQLiteException or ClassNotFoundException while generating mgf file");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "SQLiteException or ClassNotFoundException while exporting mgf file"));
-            m_logger.error("SQLiteException or ClassNotFoundException while generating mgf file", ex);
+            logger.error("SQLiteException or ClassNotFoundException while generating mgf file", ex);
         } catch (FileNotFoundException ex) {
             m_taskError = new TaskError("Mgf Generate Failure", "Generation faced an IOException. Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "Converter faced an IOException. Check input file's integrity."));
-            m_logger.error("FileNotFoundException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
+            logger.error("FileNotFoundException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
         } catch (IOException ex) {
             m_taskError = new TaskError("Mgf Generate Failure", "Generation faced an IOException. Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "Converter faced an IOException. Check input file's integrity."));
-            m_logger.error("IOException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
+            logger.error("IOException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
         }
         return false;
     }

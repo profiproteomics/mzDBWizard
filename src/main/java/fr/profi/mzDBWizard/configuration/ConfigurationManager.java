@@ -46,16 +46,12 @@ public class ConfigurationManager {
     private static int jms_server_port = 5445;
     
     private static String service_request_queue_name = "ProlineServiceRequestQueue";
-    
-    private static String input_stream_jms = "JMS_HQ_InputStream";
-    
-    private static String service_monitoring_notification_topic_name = "ProlineServiceMonitoringNotificationTopic";
-    
-    private static String proline_node_id_key = "Proline_NodeId";
+
     
     private static String proline_service_name_key = "Proline_ServiceName";
-    
-    private static String proline_service_version_key = "Proline_ServiceVersion";
+
+//    private static String proline_node_id_key = "Proline_NodeId";
+//    private static String proline_service_version_key = "Proline_ServiceVersion";
     
     private static boolean delete_raw = false;    
     
@@ -84,9 +80,11 @@ public class ConfigurationManager {
     
     private static String mounting_point_label = "";
     
-    private static boolean mgf_operation = false;
+    private static boolean generate_mgf_operation = false;
     
-    private static boolean convert_operation = true;
+    private static boolean convert_mzdb_operation = true;
+
+    private static boolean split_mzdb_operation = true;
     
     private static boolean upload_operation = true;
     
@@ -94,20 +92,28 @@ public class ConfigurationManager {
     
     private static boolean debug_mode = false;
     
-    public static void setConvertOperation(boolean b){
-        convert_operation = b;
+    public static void setConvertMzdbOperation(boolean b){
+        convert_mzdb_operation = b;
     }
     
-    public static boolean getConvertOperation(){
-        return convert_operation;
+    public static boolean getConvertMzdbOperation(){
+        return convert_mzdb_operation;
     }
     
-    public static void setMgfOperation(boolean b) {
-        mgf_operation = b;
+    public static void setGenerateMgfOperation(boolean b) {
+        generate_mgf_operation = b;
     }
-    
-    public static boolean getMgfOperation() {
-        return mgf_operation;
+
+    public static boolean getGenerateMgfOperation() {
+        return generate_mgf_operation;
+    }
+
+    public static void setSpliMzdbOperation(boolean b) {
+        split_mzdb_operation = b;
+    }
+
+    public static boolean getSpliMzdbOperation() {
+        return split_mzdb_operation;
     }
     
     public static void setUploadOperation(boolean b){
@@ -141,22 +147,7 @@ public class ConfigurationManager {
     public static String getServiceRequestQueueName() {
         return service_request_queue_name;
     }
-    
-    public static void setInputStreamJms(String s) {
-        input_stream_jms = s;
-    }
-    
-    public static String getInputStreamJms() {
-        return input_stream_jms;
-    }
-    
-    public static void setServiceMonitoringNotificationTopicName(String s) {
-        service_monitoring_notification_topic_name = s;
-    }
-    
-    public static String getServiceMonitoringNotificationTopicName() {
-        return service_monitoring_notification_topic_name;
-    }
+
 
     public static String getProlineServiceNameKey() {
         return proline_service_name_key;
@@ -314,9 +305,6 @@ public class ConfigurationManager {
             ConfigurationManager.setServiceRequestQueueName(prop.getProperty("SERVICE_REQUEST_QUEUE_NAME") != null ? prop.getProperty("SERVICE_REQUEST_QUEUE_NAME") : service_request_queue_name);
             logger.debug(service_request_queue_name);
             
-            ConfigurationManager.setServiceMonitoringNotificationTopicName(prop.getProperty("SERVICE_MONITORING_NOTIFICATION_TOPIC_NAME") != null ? prop.getProperty("SERVICE_MONITORING_NOTIFICATION_TOPIC_NAME") : service_monitoring_notification_topic_name);
-            logger.debug(service_monitoring_notification_topic_name);
-            
             ConfigurationManager.setDeleteRaw(Boolean.parseBoolean(prop.getProperty("DELETE_RAW") != null ? prop.getProperty("DELETE_RAW") : String.valueOf(delete_raw)));
             logger.debug(String.valueOf(delete_raw));
             
@@ -352,11 +340,11 @@ public class ConfigurationManager {
             }
             logger.debug(precursor_computation_method.toString());
             
-            ConfigurationManager.setMgfOperation(Boolean.parseBoolean(prop.getProperty("MGF_OPERATION") != null ? prop.getProperty("MGF_OPERATION") : String.valueOf(mgf_operation)));
-            logger.debug(String.valueOf(mgf_operation));
+            ConfigurationManager.setGenerateMgfOperation(Boolean.parseBoolean(prop.getProperty("MGF_OPERATION") != null ? prop.getProperty("MGF_OPERATION") : String.valueOf(generate_mgf_operation)));
+            logger.debug(String.valueOf(generate_mgf_operation));
             
-            ConfigurationManager.setConvertOperation(Boolean.parseBoolean(prop.getProperty("CONVERT_OPERATION") != null ? prop.getProperty("CONVERT_OPERATION") : String.valueOf(convert_operation)));
-            logger.debug(String.valueOf(convert_operation));
+            ConfigurationManager.setConvertMzdbOperation(Boolean.parseBoolean(prop.getProperty("CONVERT_OPERATION") != null ? prop.getProperty("CONVERT_OPERATION") : String.valueOf(convert_mzdb_operation)));
+            logger.debug(String.valueOf(convert_mzdb_operation));
             
             ConfigurationManager.setUploadOperation(Boolean.parseBoolean(prop.getProperty("UPLOAD_OPERATION") != null ? prop.getProperty("UPLOAD_OPERATION") : String.valueOf(upload_operation)));
             logger.debug(String.valueOf(upload_operation));
@@ -400,7 +388,6 @@ public class ConfigurationManager {
             prop.setProperty("JMS_SERVER_HOST", ConfigurationManager.getJmsServerHost());
             prop.setProperty("JMS_SERVER_PORT", String.valueOf(ConfigurationManager.getJmsServerPort()));
             prop.setProperty("SERVICE_REQUEST_QUEUE_NAME", ConfigurationManager.getServiceRequestQueueName());
-            prop.setProperty("SERVICE_MONITORING_NOTIFICATION_TOPIC_NAME", ConfigurationManager.getServiceMonitoringNotificationTopicName());
             prop.setProperty("DELETE_RAW", String.valueOf(ConfigurationManager.getDeleteRaw()));
             prop.setProperty("DELETE_MZDB", String.valueOf(ConfigurationManager.getDeleteMzdb()));
             prop.setProperty("RECURSIVE_WATCHING", String.valueOf(ConfigurationManager.getRecursive()));
@@ -413,8 +400,8 @@ public class ConfigurationManager {
             prop.setProperty("MZ_TOLERANCE", String.valueOf(ConfigurationManager.getMzTolerance()));
             prop.setProperty("INTENSITY_CUTOFF", String.valueOf(ConfigurationManager.getIntensityCutoff()));
             prop.setProperty("PRECURSOR_COMPUTATION_METHOD", ConfigurationManager.getPrecursorComputationMethod().toString());
-            prop.setProperty("MGF_OPERATION", String.valueOf(ConfigurationManager.getMgfOperation()));
-            prop.setProperty("CONVERT_OPERATION", String.valueOf(ConfigurationManager.getConvertOperation()));
+            prop.setProperty("MGF_OPERATION", String.valueOf(ConfigurationManager.getGenerateMgfOperation()));
+            prop.setProperty("CONVERT_OPERATION", String.valueOf(ConfigurationManager.getConvertMzdbOperation()));
             prop.setProperty("UPLOAD_OPERATION", String.valueOf(ConfigurationManager.getUploadOperation()));
             prop.setProperty("MOUNTING_POINT_LABEL", ConfigurationManager.getMountingPointLabel());
             prop.setProperty("DEBUG_MODE", String.valueOf(ConfigurationManager.getDebugMode()));
@@ -443,13 +430,13 @@ public class ConfigurationManager {
         modelData.add(new AttributeEntry("Monitored URL", getMonitorPath()));
         modelData.add(new AttributeEntry("Recursive Monitoring", String.valueOf(getRecursive())));
         modelData.add(new AttributeEntry("Process Pending", String.valueOf(getProcessPending())));
-        modelData.add(new AttributeEntry("Convert", String.valueOf(getConvertOperation())));
-        if(getConvertOperation()){
+        modelData.add(new AttributeEntry("Convert", String.valueOf(getConvertMzdbOperation())));
+        if(getConvertMzdbOperation()){
             modelData.add(new AttributeEntry("Converter", getConverterPath()));
             modelData.add(new AttributeEntry("Converter Options", getConverterOptions()));
         }
-        modelData.add(new AttributeEntry("Export mgf", String.valueOf(getMgfOperation())));
-        if(getMgfOperation()){
+        modelData.add(new AttributeEntry("Export mgf", String.valueOf(getGenerateMgfOperation())));
+        if(getGenerateMgfOperation()){
             modelData.add(new AttributeEntry("m/z tolerance", String.valueOf(getMzTolerance())));
             modelData.add(new AttributeEntry("Intensity cutoff", String.valueOf(getIntensityCutoff())));
             modelData.add(new AttributeEntry("Precursor m/z computation method", getPrecursorComputationMethod().toString()));
