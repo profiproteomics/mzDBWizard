@@ -20,7 +20,6 @@ import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
-import fr.profi.mzDBWizard.processing.threading.task.callback.DeleteFileCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
 import fr.profi.mzDBWizard.util.FileUtility;
 import org.slf4j.Logger;
@@ -45,7 +44,7 @@ public class DeleteFileTask extends AbstractTask {
     private File m_file;
 
     public DeleteFileTask(AbstractCallback callback, File f) {
-        super(callback, new TaskInfo("Delete file : "+f.getName(), TaskInfo.DELETE_TASK, true, null, TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR));
+        super(callback, new TaskInfo("Delete file : "+f.getName(), TaskInfo.DELETE_TASK, true,  TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR));
 
         m_file = f;
     }
@@ -63,6 +62,11 @@ public class DeleteFileTask extends AbstractTask {
 
     @Override
     public boolean precheck() throws Exception {
+
+        if (m_file == null ) {
+            m_taskError = new TaskError("No File specified. ");
+            return false;
+        }
 
         if (!m_file.exists()) {
             m_taskError = new TaskError("File does not exist : "+m_file.getAbsolutePath());
@@ -97,18 +101,13 @@ public class DeleteFileTask extends AbstractTask {
     }
 
     private boolean runTaskImplementation() throws Exception {
-
-        if (m_callback instanceof DeleteFileCallback) {
-            ((DeleteFileCallback) m_callback).setFile(m_file);
+        if (!precheck()) {
+            return false;
         }
 
         String log = "Starting to delete "+m_file.getAbsolutePath() + " file.";
         m_logger.info(log);
         m_taskInfo.addLog(log);
-
-        if (!precheck()) {
-            return false;
-        }
 
         return  deleteFile(m_file);
 

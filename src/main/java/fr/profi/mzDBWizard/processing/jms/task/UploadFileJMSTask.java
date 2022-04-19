@@ -47,7 +47,7 @@ public class UploadFileJMSTask extends AbstractJMSTask {
 
 
     public UploadFileJMSTask(AbstractJMSCallback callback, File file2Upload, Path monitorDirectoryPath, String pathLabel) {
-        super(callback, new TaskInfo("Upload File", TaskInfo.UPLOAD_TASK, false, TASK_LIST_INFO, TaskInfo.VisibilityEnum.HIDDEN));
+        super(callback, new TaskInfo("Upload File", TaskInfo.UPLOAD_TASK, false, TaskInfo.VisibilityEnum.HIDDEN));
 
         m_file2Upload = file2Upload;
         m_monitorDirectoryPath = monitorDirectoryPath;

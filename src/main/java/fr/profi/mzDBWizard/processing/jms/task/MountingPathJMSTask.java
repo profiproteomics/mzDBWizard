@@ -40,7 +40,7 @@ public class MountingPathJMSTask extends AbstractJMSTask {
     private static final String METHOD_NAME = "retrieve_all_mount_points";
 
     public MountingPathJMSTask(AbstractJMSCallback callback) {
-        super(callback, new TaskInfo("Retrieve Mounting Points", TaskInfo.MOUNTING_POINT_TASK, false, TASK_LIST_INFO,TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR));
+        super(callback, new TaskInfo("Retrieve Mounting Points", TaskInfo.MOUNTING_POINT_TASK, false, TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR));
     }
 
 
@@ -51,7 +51,7 @@ public class MountingPathJMSTask extends AbstractJMSTask {
         m_logger.debug(log);
         m_taskInfo.addLog(log);
 
-        final JSONRPC2Request jsonRequest = new JSONRPC2Request(METHOD_NAME, Integer.valueOf(m_taskInfo.getId()));
+        final JSONRPC2Request jsonRequest = new JSONRPC2Request(METHOD_NAME, m_taskInfo.getId());
 
 
         final TextMessage message = AccessJMSManagerThread.getAccessJMSManagerThread().getSession().createTextMessage(jsonRequest.toJSONString());

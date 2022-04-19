@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 /**
  *
- * TaskInfo contains all the informations (name, logs, error) of a Task
+ * TaskInfo contains all the information (name, logs, error) of a Task
  *
  * @author JPM235353
  *
@@ -32,6 +32,7 @@ public class TaskInfo  implements Comparable<TaskInfo> {
     public static final int UPLOAD_TASK = 1;
     public static final int DELETE_TASK = 2;
     public static final int MOUNTING_POINT_TASK = 3;
+    public static final int GENERATE_TASK = 4;
 
 
     public final static int PUBLIC_STATE_WAITING = 0;
@@ -55,7 +56,7 @@ public class TaskInfo  implements Comparable<TaskInfo> {
 
     private int m_taskType;
     private String m_taskDescription = null;
-    private String m_idList = null;
+
     private String m_requestContent = null;
     private String m_requestURL = null;
     private VisibilityEnum m_visibility = VisibilityEnum.VISIBLE;
@@ -80,23 +81,22 @@ public class TaskInfo  implements Comparable<TaskInfo> {
     private boolean m_success;
     private TaskError m_taskError = null;
 
-    private ArrayList<String> m_logs = new ArrayList();
+    private ArrayList<String> m_logs = new ArrayList<>();
     private int m_warningCount = 0;
 
     private TaskInfo m_srcTaskInfo = null;
 
     private static int INC_ID = 0;
 
-    public TaskInfo(String taskDescription, int taskType, boolean askBeforeExitingApp, String idList) {
-        this(taskDescription, taskType, askBeforeExitingApp, idList,  VisibilityEnum.VISIBLE);
+    public TaskInfo(String taskDescription, int taskType, boolean askBeforeExitingApp) {
+        this(taskDescription, taskType, askBeforeExitingApp,   VisibilityEnum.VISIBLE);
     }
 
-    public TaskInfo(String taskDescription, int taskType, boolean askBeforeExitingApp, String idList, VisibilityEnum visibility) {
+    public TaskInfo(String taskDescription, int taskType, boolean askBeforeExitingApp, VisibilityEnum visibility) {
 
         m_taskDescription = taskDescription;
         m_taskType = taskType;
         m_askBeforeExitingApp = askBeforeExitingApp;
-        m_idList = idList;
         m_visibility = visibility;
 
         m_state = STATE_WAITING;
@@ -165,15 +165,6 @@ public class TaskInfo  implements Comparable<TaskInfo> {
         }
         TaskInfoManager.getTaskInfoManager().update(this);
 
-    }
-
-    public void setPercentage(float percentage) {
-        m_percentage = percentage;
-        TaskInfoManager.getTaskInfoManager().update(this, false);
-    }
-
-    public float getPercentage() {
-        return m_percentage;
     }
 
     public void setRequestContent(String m_requestContent) {
@@ -256,10 +247,6 @@ public class TaskInfo  implements Comparable<TaskInfo> {
 
     public int getId() {
         return m_id;
-    }
-
-    public String getIdList() {
-        return m_idList;
     }
 
 
@@ -360,7 +347,6 @@ public class TaskInfo  implements Comparable<TaskInfo> {
         to.m_taskDescription = from.m_taskDescription;
         to.m_taskType = from.m_taskType;
         to.m_askBeforeExitingApp = from.m_askBeforeExitingApp;
-        to.m_idList = from.m_idList;
         to.m_visibility = from.m_visibility;
         to.m_state = from.m_state;
         to.m_id = from.m_id;

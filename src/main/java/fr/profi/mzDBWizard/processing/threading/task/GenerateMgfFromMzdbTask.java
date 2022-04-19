@@ -17,7 +17,6 @@
 package fr.profi.mzDBWizard.processing.threading.task;
 
 import com.almworks.sqlite4java.SQLiteException;
-import fr.profi.mzDBWizard.configuration.Configuration;
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
@@ -39,14 +38,14 @@ import java.io.IOException;
  *
  * @author JPM235353
  */
-public class ConvertMzdb2MgfTask extends AbstractTask {
+public class GenerateMgfFromMzdbTask extends AbstractTask {
 
     private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
 
     private File m_mzdbFile;
 
-    public ConvertMzdb2MgfTask(AbstractCallback callback, File mzdbFile) {
-        super(callback, new TaskInfo("Convert to mgf : "+mzdbFile.getName(), TaskInfo.CONVERTER_TASK,true, null, TaskInfo.VisibilityEnum.VISIBLE));
+    public GenerateMgfFromMzdbTask(AbstractCallback callback, File mzdbFile) {
+        super(callback, new TaskInfo("Generate mgf from  "+mzdbFile.getName(), TaskInfo.GENERATE_TASK,true,  TaskInfo.VisibilityEnum.VISIBLE));
 
         m_mzdbFile = mzdbFile;
     }
@@ -57,7 +56,7 @@ public class ConvertMzdb2MgfTask extends AbstractTask {
 
     @Override
     public int getType() {
-        return WorkerPool.CONVERTER_THREAD;
+        return WorkerPool.GENERATE_THREAD;
     }
 
     @Override
@@ -82,42 +81,43 @@ public class ConvertMzdb2MgfTask extends AbstractTask {
             return false;
         }
 
-        // check that the raw file has been completely copied on the disk
+        m_logger.info("  -->  Generate MGF file from "+m_mzdbFile.getName());
+        // check that the source file has been completely copied on the disk
         FileUtility.checkFileFinalization(m_mzdbFile);
 
-        String log = "Starting to convert " + m_mzdbFile.getAbsolutePath() + " to .mgf format.";
+        String log = "Starting to generate " + m_mzdbFile.getAbsolutePath() + " to .mgf format.";
         m_logger.info(log);
         m_taskInfo.addLog(log);
 
-        return exportMgf(m_mzdbFile);
+        return generateMgf(m_mzdbFile);
 
     }
 
 
-    private boolean exportMgf(File mzdbFile) {
+    private boolean generateMgf(File mzdbFile) {
         try {
             MgfWriter writer = new MgfWriter(mzdbFile.getAbsolutePath());
             writer.write(mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", getPrecursorComputer(), ConfigurationManager.getIntensityCutoff(), true);
             writer.getMzDbReader().close();
 
-            String log = mzdbFile.getAbsolutePath() + " has just been exported in .mgf format.";
+            String log = " mgf file generated from "+ mzdbFile.getAbsolutePath() +".";
             m_logger.info(log);
             m_taskInfo.addLog(log);
 
             return true;
             //m_logs.append(mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".tmp"))).append(" has just been exported in .mgf format." + "\n");
         } catch (SQLiteException | ClassNotFoundException ex) {
-            m_taskError = new TaskError("Mgf Export Failure", "SQLiteException or ClassNotFoundException while exporting mgf file");
+            m_taskError = new TaskError("Mgf generate Failure", "SQLiteException or ClassNotFoundException while generating mgf file");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "SQLiteException or ClassNotFoundException while exporting mgf file"));
-            m_logger.error("SQLiteException or ClassNotFoundException while exporting mgf file", ex);
+            m_logger.error("SQLiteException or ClassNotFoundException while generating mgf file", ex);
         } catch (FileNotFoundException ex) {
-            m_taskError = new TaskError("Mgf Export Failure", "Converter faced an IOException. Check input file's integrity.");
+            m_taskError = new TaskError("Mgf Generate Failure", "Generation faced an IOException. Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "Converter faced an IOException. Check input file's integrity."));
-            m_logger.error("FileNotFoundException while exporting mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
+            m_logger.error("FileNotFoundException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
         } catch (IOException ex) {
-            m_taskError = new TaskError("Mgf Export Failure", "Converter faced an IOException. Check input file's integrity.");
+            m_taskError = new TaskError("Mgf Generate Failure", "Generation faced an IOException. Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "Converter faced an IOException. Check input file's integrity."));
-            m_logger.error("IOException while exporting mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
+            m_logger.error("IOException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
         }
         return false;
     }
@@ -126,15 +126,15 @@ public class ConvertMzdb2MgfTask extends AbstractTask {
 
         IPrecursorComputation precComp = null;
 
-        if (ConfigurationManager.getPrecursorComputationMethod().equals(Configuration.PrecursorComputationMethod.PROLINE_REFINED_PRECURSOR_MZ)) {
+        if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.PROLINE_REFINED_PRECURSOR_MZ)) {
             precComp = new IsolationWindowPrecursorExtractor(ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(Configuration.PrecursorComputationMethod.THERMO_REFINED_PRECURSOR_MZ)) {
+        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.THERMO_REFINED_PRECURSOR_MZ)) {
             precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.REFINED_THERMO, ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(Configuration.PrecursorComputationMethod.MZDB_ACCESS_REFINED_PRECURSOR_MZ)) {
+        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.MZDB_ACCESS_REFINED_PRECURSOR_MZ)) {
             precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.REFINED, ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(Configuration.PrecursorComputationMethod.SELECTED_ION_MZ)) {
+        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.SELECTED_ION_MZ)) {
             precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.SELECTED_ION_MZ, ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(Configuration.PrecursorComputationMethod.MAIN_PRECURSOR_MZ)) {
+        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.MAIN_PRECURSOR_MZ)) {
             precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.MAIN_PRECURSOR_MZ, ConfigurationManager.getMzTolerance());
         }
 

@@ -36,7 +36,6 @@ import javax.swing.JToolBar;
 public class LogPanel extends JPanel implements ActionListener {
 
     private JTextPane m_textPane;
-    private JButton m_clearButton;
 
     public LogPanel() {
         setLayout(new BorderLayout());
@@ -63,8 +62,8 @@ public class LogPanel extends JPanel implements ActionListener {
         JToolBar toolbar = new JToolBar();
         toolbar.setOrientation(JToolBar.VERTICAL);
         toolbar.setFloatable(false);
-        
-        m_clearButton = new JButton(DefaultIcons.getSingleton().getIcon(DefaultIcons.BROOM_ICON));
+
+        JButton m_clearButton = new JButton(DefaultIcons.getSingleton().getIcon(DefaultIcons.BROOM_ICON));
         m_clearButton.setFocusPainted(false);
         m_clearButton.setOpaque(true);
         m_clearButton.setBorderPainted(false);

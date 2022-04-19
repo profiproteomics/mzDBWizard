@@ -18,9 +18,8 @@ package fr.profi.mzDBWizard.processing.threading.task.callback;
 
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.filelookup.WatcherPoolMonitor;
-import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
+import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
 
 import java.io.File;
@@ -31,7 +30,7 @@ import java.io.File;
  *
  * @author JPM235353
  */
-public class ConvertMzdb2MgfCallback extends AbstractCallback {
+public class GenerateMgfFromMzdbCallback extends AbstractCallback {
 
     private File m_mzdbFile = null;
 
@@ -42,9 +41,11 @@ public class ConvertMzdb2MgfCallback extends AbstractCallback {
 
     @Override
     public void run(boolean success, long taskId) {
-        if (!success) {
+        if (!success ||m_mzdbFile == null) {
             return;
         }
+
+        m_logger.info( " - Finish  mgf generation from "+m_mzdbFile.getName()+ "... getUploadOperation  "+ConfigurationManager.getUploadOperation()+" getDeleteMzdb "+ ConfigurationManager.getDeleteMzdb());
 
 
 
@@ -53,14 +54,14 @@ public class ConvertMzdb2MgfCallback extends AbstractCallback {
 
             UploadMzdbCallback callback = new UploadMzdbCallback();
             callback.setMzdbFile(m_mzdbFile);
-            TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, m_mzdbFile, WatcherPoolMonitor.getDirectoryWatcher().getPath(), ConfigurationManager.getMountingPointLabel()));
+            TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, m_mzdbFile, new File(ConfigurationManager.getMonitorPath()), ConfigurationManager.getMountingPointLabel()));
 
             return;
         }
 
         // if cleanup is asked for mzdb file
         if (ConfigurationManager.getDeleteMzdb()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(new DeleteFileCallback(), m_mzdbFile));
+            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(null, m_mzdbFile));
             return;
         }
 

@@ -16,20 +16,14 @@
  */
 package fr.profi.mzDBWizard.configuration;
 
-import fr.profi.mzDBWizard.configuration.Configuration.PrecursorComputationMethod;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import fr.profi.mzDBWizard.gui.overview.AttributeEntry;
+import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
+import fr.profi.mzDBWizard.util.MzDBUtil;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
-
-import fr.profi.mzDBWizard.util.FileManager;
-import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -38,9 +32,11 @@ import org.slf4j.LoggerFactory;
  * @author AK249877
  */
 public class ConfigurationManager {
-    
 
-    
+    public enum PrecursorComputationMethod {
+        MAIN_PRECURSOR_MZ, SELECTED_ION_MZ, MZDB_ACCESS_REFINED_PRECURSOR_MZ, THERMO_REFINED_PRECURSOR_MZ, PROLINE_REFINED_PRECURSOR_MZ
+    }
+
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger("ApplicationProperties");
 
     public static final String HOST_TO_SELECT =  "<host>";
@@ -106,7 +102,7 @@ public class ConfigurationManager {
         return convert_operation;
     }
     
-        public static void setMgfOperation(boolean b) {
+    public static void setMgfOperation(boolean b) {
         mgf_operation = b;
     }
     
@@ -301,7 +297,7 @@ public class ConfigurationManager {
         InputStream is = null;
         try {
 
-            File cfgFile =new File(FileManager.CONFIGURATION_FILE);
+            File cfgFile =new File(MzDBUtil.CONFIGURATION_FILE);
             is =  new FileInputStream(cfgFile);
 
             logger.debug("Loading Configuration File: " + cfgFile.getAbsolutePath() + " ..");
@@ -398,7 +394,7 @@ public class ConfigurationManager {
         
         try {
 
-            output = new FileOutputStream(FileManager.CONFIGURATION_FILE);
+            output = new FileOutputStream(MzDBUtil.CONFIGURATION_FILE);
 
             // set the properties value
             prop.setProperty("JMS_SERVER_HOST", ConfigurationManager.getJmsServerHost());
@@ -438,6 +434,35 @@ public class ConfigurationManager {
             }
             
         }
+    }
+
+
+    public static ArrayList<AttributeEntry> getConfigurationModelData(){
+        ArrayList<AttributeEntry> modelData = new ArrayList<AttributeEntry>();
+
+        modelData.add(new AttributeEntry("Monitored URL", getMonitorPath()));
+        modelData.add(new AttributeEntry("Recursive Monitoring", String.valueOf(getRecursive())));
+        modelData.add(new AttributeEntry("Process Pending", String.valueOf(getProcessPending())));
+        modelData.add(new AttributeEntry("Convert", String.valueOf(getConvertOperation())));
+        if(getConvertOperation()){
+            modelData.add(new AttributeEntry("Converter", getConverterPath()));
+            modelData.add(new AttributeEntry("Converter Options", getConverterOptions()));
+        }
+        modelData.add(new AttributeEntry("Export mgf", String.valueOf(getMgfOperation())));
+        if(getMgfOperation()){
+            modelData.add(new AttributeEntry("m/z tolerance", String.valueOf(getMzTolerance())));
+            modelData.add(new AttributeEntry("Intensity cutoff", String.valueOf(getIntensityCutoff())));
+            modelData.add(new AttributeEntry("Precursor m/z computation method", getPrecursorComputationMethod().toString()));
+        }
+        modelData.add(new AttributeEntry("Upload", String.valueOf(getUploadOperation())));
+        if(getUploadOperation()){
+            modelData.add(new AttributeEntry("Host", getJmsServerHost()));
+            modelData.add(new AttributeEntry("Mounting Point", getMountingPointLabel()));
+        }
+        modelData.add(new AttributeEntry("Delete raw", String.valueOf(getDeleteRaw())));
+        modelData.add(new AttributeEntry("Delete mzdb", String.valueOf(getDeleteMzdb())));
+
+        return modelData;
     }
     
 }

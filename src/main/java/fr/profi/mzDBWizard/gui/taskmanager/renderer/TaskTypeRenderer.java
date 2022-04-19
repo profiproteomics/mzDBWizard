@@ -46,6 +46,11 @@ public class TaskTypeRenderer extends DefaultTableCellRenderer {
                 setText("Mounting Point");
                 setIcon(null);
                 break;
+            case TaskInfo.GENERATE_TASK:
+                setToolTipText("Generate new file");
+                setText("Generate");
+                setIcon(DefaultIcons.getSingleton().getIcon(DefaultIcons.GEAR_ICON));
+                break;
             default:
                 setToolTipText("");
                 setText("");

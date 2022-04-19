@@ -121,11 +121,11 @@ public class ComponentTitledBorder implements Border, MouseListener, MouseMotion
             return;
         }
 
-        if (mouseEntered == false && rect.contains(me.getX(), me.getY())) {
+        if (!mouseEntered && rect.contains(me.getX(), me.getY())) {
             mouseEntered = true;
             dispatchEvent(me, MouseEvent.MOUSE_ENTERED);
-        } else if (mouseEntered == true) {
-            if (rect.contains(me.getX(), me.getY()) == false) {
+        } else if (mouseEntered) {
+            if (!rect.contains(me.getX(), me.getY())) {
                 mouseEntered = false;
                 dispatchEvent(me, MouseEvent.MOUSE_EXITED);
             } else {

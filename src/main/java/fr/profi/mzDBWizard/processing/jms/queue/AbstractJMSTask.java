@@ -59,9 +59,6 @@ public abstract class AbstractJMSTask  extends AbstractTaskWithInfo implements M
 
     protected static final Logger m_logger = LoggerFactory.getLogger("mzDB-Task");
 
-    public static final String TASK_LIST_INFO = "Services JMS";
-
-
     private boolean m_taskFinished = false;
 
     /* To count received messages */

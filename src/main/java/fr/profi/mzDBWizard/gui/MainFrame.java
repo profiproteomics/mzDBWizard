@@ -16,7 +16,6 @@
  */
 package fr.profi.mzDBWizard.gui;
 
-import fr.profi.mzDBWizard.configuration.CurrentExecution;
 import fr.profi.mzDBWizard.gui.about.AboutDialog;
 import fr.profi.mzDBWizard.gui.log.LogPanel;
 import fr.profi.mzDBWizard.gui.overview.AttributesTableModel;
@@ -45,9 +44,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -66,10 +62,6 @@ import javax.swing.JTable;
  * @author AK249877
  */
 public class MainFrame extends JFrame implements WindowListener, ActionListener {
-
-    private final TaskManagerPanel m_taskManager;
-    private final JTabbedPane m_tabbedPane;
-    private final JSplitPane m_splitPane;
 
     public MainFrame(Dimension dimension, Dimension minDimension) {
 
@@ -99,12 +91,12 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
         setMinimumSize(minDimension);
 
-        m_tabbedPane = new JTabbedPane();
+        JTabbedPane m_tabbedPane = new JTabbedPane();
         m_tabbedPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         m_tabbedPane.setPreferredSize(new Dimension(800, 600));
         m_tabbedPane.setMinimumSize(new Dimension(800, 600));
 
-        m_taskManager = new TaskManagerPanel();
+        TaskManagerPanel m_taskManager = new TaskManagerPanel();
         //Thread taskManagerThread = new Thread(m_taskManager);
         //taskManagerThread.start();
 
@@ -117,7 +109,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
         JPanel executionPanel = getExecutionPanel();
 
-        m_splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, m_tabbedPane, executionPanel);
+        JSplitPane m_splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, m_tabbedPane, executionPanel);
         m_splitPane.setOneTouchExpandable(true);
 
         //Provide minimum sizes for the two components in the split pane
@@ -154,7 +146,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
         c.gridy++;
 
-        AttributesTableModel m_configurationTableModel = new AttributesTableModel(CurrentExecution.getInstance().getConfiguration().getConfigurationModelData());
+        AttributesTableModel m_configurationTableModel = new AttributesTableModel(ConfigurationManager.getConfigurationModelData());
         JTable configurationTable = new JTable(m_configurationTableModel);
         configurationTable.setTableHeader(null);
         configurationTable.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
@@ -222,7 +214,6 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
     @Override
     public void windowOpened(WindowEvent we) {
-        ;
     }
 
     @Override
@@ -232,27 +223,22 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
     @Override
     public void windowClosed(WindowEvent we) {
-        ;
     }
 
     @Override
     public void windowIconified(WindowEvent we) {
-        ;
     }
 
     @Override
     public void windowDeiconified(WindowEvent we) {
-        ;
     }
 
     @Override
     public void windowActivated(WindowEvent we) {
-        ;
     }
 
     @Override
     public void windowDeactivated(WindowEvent we) {
-        ;
     }
 
     @Override

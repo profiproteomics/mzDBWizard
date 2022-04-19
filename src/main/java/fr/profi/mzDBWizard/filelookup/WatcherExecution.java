@@ -14,9 +14,8 @@
  * You should have received a copy of the CeCILL License
  * along with this program; If not, see <http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.html>.
  */
-package fr.profi.mzDBWizard.configuration;
+package fr.profi.mzDBWizard.filelookup;
 
-import fr.profi.mzDBWizard.filelookup.WatcherPoolMonitor;
 import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,39 +24,33 @@ import java.util.concurrent.ThreadPoolExecutor;
  *
  * @author AK249877
  */
-public class CurrentExecution {
+public class WatcherExecution {
 
     private static File m_monitoringDirectory;
     private static ThreadPoolExecutor m_watcherExecutor;
     private static WatcherPoolMonitor m_directoryWatcher;
-    private static CurrentExecution m_instance;
-    private static Configuration m_configuration;
+    private static WatcherExecution m_instance;
 
-    public static void initInstance(File monitoringDirectory, Configuration configuration) {
+    public static void initInstance(File monitoringDirectory) {
         m_monitoringDirectory = monitoringDirectory;
-        m_configuration = configuration;
+        m_instance = new WatcherExecution();
+        m_directoryWatcher = new WatcherPoolMonitor(m_monitoringDirectory, m_watcherExecutor, 10);
+        Thread thread = new Thread(m_directoryWatcher);
+        thread.start();
     }
 
-    public static CurrentExecution getInstance() {
-        if (m_instance == null) {
-            m_instance = new CurrentExecution();
-            m_directoryWatcher = new WatcherPoolMonitor(m_monitoringDirectory, m_watcherExecutor, 10);
-            Thread thread = new Thread(m_directoryWatcher);
-            thread.start();
-        }
+    public static WatcherExecution getInstance() {
+        if (m_instance == null)
+            throw new IllegalArgumentException("Instance must ne initialized first !");
         return m_instance;
     }
 
-    private CurrentExecution() {
+    private WatcherExecution() {
         m_watcherExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     }
 
     public File getMonitoringDirectory() {
         return m_monitoringDirectory;
-    }
-
-    public Configuration getConfiguration() {
-        return m_configuration;
     }
 
 }

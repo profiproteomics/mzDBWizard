@@ -204,7 +204,7 @@ public class JMSConnectionManager {
                     NettyConnectorFactory.class.getName(), connectionParams);
 
             // Step 3 Directly instantiate the JMS ConnectionFactory object using that TransportConfiguration
-            final HornetQConnectionFactory cf = (HornetQConnectionFactory) HornetQJMSClient
+            final HornetQConnectionFactory cf = HornetQJMSClient
                     .createConnectionFactoryWithoutHA(JMSFactoryType.CF, transportConfiguration);
             cf.setReconnectAttempts(10);
 

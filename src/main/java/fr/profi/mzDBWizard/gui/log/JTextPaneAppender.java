@@ -16,10 +16,6 @@
  */
 package fr.profi.mzDBWizard.gui.log;
 
-/**
- *
- * @author AK249877
- */
 import static ch.qos.logback.classic.Level.DEBUG;
 import static ch.qos.logback.classic.Level.ERROR;
 import static ch.qos.logback.classic.Level.INFO;
@@ -40,6 +36,7 @@ import javax.swing.text.StyleConstants;
  * Appender LogBack for JTextArea (swing component)
  *
  * @author Florent Moisson
+ * @author AK249877
  */
 public class JTextPaneAppender extends AppenderBase<ILoggingEvent> {
 

@@ -93,9 +93,4 @@ public class WatcherPoolMonitor implements Runnable {
     }
 
 
-    public static DirectoryWatcher getDirectoryWatcher() {
-        //can return null
-        return m_directoryWatcher;
-    }
-
 }

@@ -25,6 +25,8 @@ import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.jms.task.UploadFileJMSTask;
 import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -41,14 +43,15 @@ public class UploadMzdbTask extends AbstractTask {
     private File m_file;
     private Path m_directoryPath;
     private String m_pathLabel;
+    private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
 
     private boolean m_uploadResult = false;
 
-    public UploadMzdbTask(AbstractCallback callback, File f, Path directoryPath, String pathLabel) {
-        super(callback, new TaskInfo("Updload : "+f.getName(), TaskInfo.UPLOAD_TASK,true, null, TaskInfo.VisibilityEnum.VISIBLE));
+    public UploadMzdbTask(AbstractCallback callback, File f, File directory, String pathLabel) {
+        super(callback, new TaskInfo("Updload : "+f.getName(), TaskInfo.UPLOAD_TASK,true,  TaskInfo.VisibilityEnum.VISIBLE));
 
         m_file = f;
-        m_directoryPath = directoryPath;
+        m_directoryPath = directory.toPath();
         m_pathLabel = pathLabel;
     }
 
@@ -87,6 +90,7 @@ public class UploadMzdbTask extends AbstractTask {
         if (!precheck()) {
             return false;
         }
+        m_logger.info("  -->  Upload file "+m_file.getName());
 
         // Create task for JMS and waits for its end
 

@@ -18,7 +18,6 @@ package fr.profi.mzDBWizard.processing.threading.task.callback;
 
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.processing.threading.task.ConvertMzdb2MgfTask;
 import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
 
@@ -32,7 +31,6 @@ import java.io.File;
  */
 public class ConvertRawFile2MzdbCallback extends AbstractCallback {
 
-    private File m_mzdbFile = null;
     private File m_rawFile = null;
 
     @Override
@@ -46,40 +44,13 @@ public class ConvertRawFile2MzdbCallback extends AbstractCallback {
             return;
         }
 
+        m_logger.debug( " --- Finish raw2mzdb. Del raw ? "+ConfigurationManager.getDeleteRaw());
         // if cleanup is asked for raw file
         if (ConfigurationManager.getDeleteRaw()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(new DeleteFileCallback(), m_rawFile));
+            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(null, m_rawFile));
         }
 
-        // if MGF is asked : ask to convert to MGF (upload of mzdb will be done after mgf conversion)
-        if (ConfigurationManager.getMgfOperation()) {
-            ConvertMzdb2MgfCallback callback = new ConvertMzdb2MgfCallback();
-            TaskManagerThread.getTaskManagerThread().addTask(new ConvertMzdb2MgfTask(callback, m_mzdbFile));
-            callback.setMzdbFile(m_mzdbFile);
 
-            return;
-        }
-
-        // if Upload of mzdb is asked
-        if (ConfigurationManager.getUploadOperation()) {
-
-            UploadMzdbCallback callback = new UploadMzdbCallback();
-            callback.setMzdbFile(m_mzdbFile);
-            // JPM.TEST TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, m_mzdbFile, WatcherPoolMonitor.getDirectoryWatcher().getPath(), ConfigurationManager.getMountingPointLabel()));
-
-            return;
-        }
-
-        // if cleanup is asked for mzdb file
-        // we do not do the clean up : cleaning up a mzdb file which has not been converted to mgf and has not been updloaded is a nonsense.
-        /*if (ConfigurationManager.getDeleteMzdb()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(new DeleteFileCallback(), m_mzdbFile));
-            return;
-        }*/
-    }
-
-    public void setMzdbFile(File mzdbFile) {
-        m_mzdbFile = mzdbFile;
     }
 
     public void setRawFile(File rawFile) {

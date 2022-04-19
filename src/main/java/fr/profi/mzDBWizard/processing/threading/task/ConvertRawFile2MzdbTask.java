@@ -21,14 +21,13 @@ import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
-import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
-import fr.profi.mzDBWizard.util.FileManager;
+import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.util.GenericUtil;
+import fr.profi.mzDBWizard.util.MzDBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.io.*;
 import java.util.ArrayList;
@@ -53,13 +52,13 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
     private final Logger m_logger = LoggerFactory.getLogger(getClass().toString());
 
     public ConvertRawFile2MzdbTask(AbstractCallback callback, File f) {
-        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true, null, TaskInfo.VisibilityEnum.VISIBLE));
+        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true,  TaskInfo.VisibilityEnum.VISIBLE));
 
         m_file = f;
     }
 
     public ConvertRawFile2MzdbTask(AbstractCallback callback, File f, boolean testMode) {
-        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true, null, testMode ? TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR: TaskInfo.VisibilityEnum.VISIBLE));
+        super(callback, new TaskInfo("Convert to mzdb : "+f.getName(), TaskInfo.CONVERTER_TASK, true,  testMode ? TaskInfo.VisibilityEnum.VISIBLE_IF_ERROR: TaskInfo.VisibilityEnum.VISIBLE));
 
         m_file = f;
         m_testMode = testMode;
@@ -87,7 +86,7 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
 
         if(m_testMode){
             // check that test mzdb file does not exist
-            File mzdbFile = new File(FileManager.TEST_MZDB);
+            File mzdbFile = new File(MzDBUtil.TEST_MZDB);
             if (mzdbFile!= null && mzdbFile.exists()) {
                 m_taskError = new TaskError("Test mzdb file corresponding to " + m_file.getAbsolutePath() + " already exists.");
                 return false;
@@ -95,7 +94,7 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
             m_outputMzdbFilePath = mzdbFile.getAbsolutePath();
 
             // delete mzdb tmp file if necessary
-            File tempFile = new File(FileManager.TEST_MZDB_TMP);
+            File tempFile = new File(MzDBUtil.TEST_MZDB_TMP);
             if (tempFile.exists()) {
                 FileUtility.forceDeleteFile(tempFile);
             }
@@ -182,13 +181,12 @@ public class ConvertRawFile2MzdbTask extends AbstractTask {
                     return false;
                 }
             } else {
-                //JPM.WART : raw2mzdb.exe automatically rename .mzdb.tmp file to .mzDB
+                //JPM.WART : raw2mzdb.exe automatically rename .mzdb.tmp file to .mzDB VDS TODO why rename ?
                 mzdbFile.renameTo(mzdbFile);
             }
 
             if (m_callback instanceof ConvertRawFile2MzdbCallback) {
                 ((ConvertRawFile2MzdbCallback) m_callback).setRawFile(m_file);
-                ((ConvertRawFile2MzdbCallback) m_callback).setMzdbFile(mzdbFile);
             }
 
         } else {

@@ -16,31 +16,25 @@
  */
 package fr.profi.mzDBWizard.util;
 
-import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import com.almworks.sqlite4java.SQLiteException;
+import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzdb.MzDbReader;
 import fr.profi.mzdb.MzDbReaderHelper;
 import fr.profi.mzdb.model.Spectrum;
 import fr.profi.mzdb.model.SpectrumData;
 import fr.profi.mzdb.model.SpectrumHeader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.io.StreamCorruptedException;
-import java.nio.channels.FileChannel;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.*;
 import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -49,7 +43,7 @@ import org.slf4j.LoggerFactory;
  * @author AK249877
  */
 public class FileUtility {
-
+//VDS TODO: use apache commons io instead ? 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger("FileUtil");
 
     public static void listFiles(String directoryName, ArrayList<File> files, boolean recursive) {

@@ -19,6 +19,7 @@ package fr.profi.mzDBWizard.processing.threading.queue;
 import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
@@ -41,7 +42,7 @@ public abstract class AbstractTask extends AbstractTaskWithInfo {
     protected TaskError m_taskError = null;
     protected int m_errorId = -1;
 
-    private final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass().toString());
+    private final Logger logger = LoggerFactory.getLogger(getClass().toString());
 
 
     public AbstractTask(AbstractCallback callback, TaskInfo taskInfo) {
@@ -72,7 +73,7 @@ public abstract class AbstractTask extends AbstractTaskWithInfo {
     public abstract boolean precheck() throws Exception;
 
     /**
-     * Method called by the AccessDatabaseThread to fetch Data from database
+     * Method called by the WorkerThread to fetch Data from database
      *
      * @return
      */

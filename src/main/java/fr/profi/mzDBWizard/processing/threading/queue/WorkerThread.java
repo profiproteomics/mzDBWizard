@@ -59,7 +59,7 @@ public class WorkerThread extends Thread {
         try {
             while (true) {
 
-                AbstractTask action = null;
+                AbstractTask action;
 
                 synchronized (this) {
 
