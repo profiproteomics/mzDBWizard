@@ -22,16 +22,17 @@ import fr.profi.mzDBWizard.filelookup.WatcherExecution;
 import fr.profi.mzDBWizard.gui.MainFrame;
 import fr.profi.mzDBWizard.gui.SettingsAndReviewDialog;
 import fr.profi.mzDBWizard.gui.util.DefaultIcons;
+import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
 import fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.util.MzDBUtil;
+import fr.profi.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 
@@ -46,13 +47,12 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class MZDBWizard {
 
+    static Logger logger = LoggerFactory.getLogger("mzDBWizard");
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 
-
-        Logger logger = LoggerFactory.getLogger("mzDBWizard");
         logger.info("Start mzDBWWizard. Read configuration");
         ConfigurationManager.loadProperties();
 
@@ -97,7 +97,6 @@ public class MZDBWizard {
 
                         if (rawFile.exists()) {
 
-
                             AbstractCallback callback = new AbstractCallback() {
 
                                 @Override
@@ -117,9 +116,7 @@ public class MZDBWizard {
 
                                     } else {
                                         waitDialog.setVisible(false);
-                                        JOptionPane.showMessageDialog(null, "Something is wrong with raw2mzDB.exe. See your system administrator...", "Converter Test Error", JOptionPane.ERROR_MESSAGE);
-                                        logger.error("Something is wrong with raw2mzDB.exe. Call your administrator!");
-                                        System.exit(1);
+                                        MZDBWizard.showErrorMsgAndExit(getTaskError());
                                     }
                                 }
 
@@ -131,7 +128,8 @@ public class MZDBWizard {
 
 
                         } else {
-                            System.exit(1);
+                            TaskError err = new TaskError("No test.raw file to validate converter.");
+                            MZDBWizard.showErrorMsgAndExit(err);
                         }
 
                     } else {
@@ -159,6 +157,20 @@ public class MZDBWizard {
 
             }});
 
+    }
+
+    private  static void showErrorMsgAndExit(TaskError err){
+        String msg = "Something is wrong initializing mzDbWizard. See your system administrator...";
+        if(err!=null) {
+            msg += "\nError: ";
+            if (StringUtils.isNotEmpty(err.getErrorText()))
+                msg += err.getErrorText();
+            else
+                msg += err.getErrorTitle();
+        }
+        JOptionPane.showMessageDialog(null, msg, "mzDbWizard initialization error", JOptionPane.ERROR_MESSAGE);
+        logger.error(msg);
+        System.exit(1);
     }
 
 }
