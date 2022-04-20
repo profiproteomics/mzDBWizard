@@ -18,6 +18,7 @@ package fr.profi.mzDBWizard.configuration;
 
 import fr.profi.mzDBWizard.gui.overview.AttributeEntry;
 import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
+import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
 import fr.profi.mzDBWizard.util.MzDBUtil;
 import org.slf4j.LoggerFactory;
 
@@ -40,36 +41,25 @@ public class ConfigurationManager {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger("ApplicationProperties");
 
     public static final String HOST_TO_SELECT =  "<host>";
-
     private static String jms_server_host = HOST_TO_SELECT;
-    
     private static int jms_server_port = 5445;
-    
-    private static String service_request_queue_name = "ProlineServiceRequestQueue";
 
-    
-    private static String proline_service_name_key = "Proline_ServiceName";
+    private static String service_request_queue_name = JMSConnectionManager.DEFAULT_SERVICE_REQUEST_QUEUE_NAME;
 
-//    private static String proline_node_id_key = "Proline_NodeId";
-//    private static String proline_service_version_key = "Proline_ServiceVersion";
-    
-    private static boolean delete_raw = false;    
+    private static boolean delete_raw = false;
     
     private static boolean delete_mzdb = true;
     
     private static boolean recursive_watching = true;
     
     private static boolean fullscreen = false;
-    
-    private static boolean restricted = true;
-    
+
     private static ArrayList<String> path_labels;
     
     private static String converter_path = "." + File.separator + "converter" + File.separator + "mzdb_x64_0.9.7" + File.separator + "raw2mzDB.exe";
 
     private static String converter_options;
 
-    
     private static String monitor_path = "." + File.separator;
     
     private static float mz_tolerance = (float) 10.0;
@@ -112,7 +102,7 @@ public class ConfigurationManager {
         split_mzdb_operation = b;
     }
 
-    public static boolean getSpliMzdbOperation() {
+    public static boolean getSplitMzdbOperation() {
         return split_mzdb_operation;
     }
     
@@ -148,9 +138,8 @@ public class ConfigurationManager {
         return service_request_queue_name;
     }
 
-
     public static String getProlineServiceNameKey() {
-        return proline_service_name_key;
+        return JMSConnectionManager.PROLINE_SERVICE_NAME_KEY;
     }
 
     public static void setDeleteRaw(boolean b) {
@@ -185,14 +174,6 @@ public class ConfigurationManager {
         return fullscreen;
     }
     
-    public static void setRestricted(boolean b) {
-        restricted = b;
-    }
-    
-    public static boolean getRestricted() {
-        return restricted;
-    }
-    
     public static void setPathLabels(ArrayList<String> labels) {
         path_labels = labels;
     }
@@ -200,7 +181,6 @@ public class ConfigurationManager {
     public static ArrayList<String> getPathLabels() {
         return path_labels;
     }
-
 
     public static void setConverterOptions(String s) {
         converter_options = s;
@@ -316,15 +296,15 @@ public class ConfigurationManager {
             
             ConfigurationManager.setFullscreen(Boolean.parseBoolean(prop.getProperty("FULLSCREEN") != null ? prop.getProperty("FULLSCREEN") : String.valueOf(fullscreen)));
             logger.debug(String.valueOf(fullscreen));
-
-            ConfigurationManager.setRestricted(Boolean.parseBoolean(prop.getProperty("RESTRICTED") != null ? prop.getProperty("RESTRICTED") : String.valueOf(restricted)));
-            logger.debug(String.valueOf(restricted));
             
             ConfigurationManager.setConverterPath(prop.getProperty("CONVERTER_PATH") != null ? prop.getProperty("CONVERTER_PATH") : converter_path);
             logger.debug(converter_path);
 
             ConfigurationManager.setConverterOptions(prop.getProperty("CONVERTER_OPTIONS") != null ? prop.getProperty("CONVERTER_OPTIONS") : "");
             logger.debug(converter_path);
+
+            ConfigurationManager.setSpliMzdbOperation(Boolean.parseBoolean(prop.getProperty("SPLIT_MZDB_OPERATION") != null ? prop.getProperty("SPLIT_MZDB_OPERATION") : String.valueOf(split_mzdb_operation)));
+            logger.debug(String.valueOf(split_mzdb_operation));
 
             ConfigurationManager.setMonitorPath(prop.getProperty("MONITOR_PATH") != null ? prop.getProperty("MONITOR_PATH") : monitor_path);
             logger.debug(monitor_path);
@@ -393,7 +373,6 @@ public class ConfigurationManager {
             prop.setProperty("RECURSIVE_WATCHING", String.valueOf(ConfigurationManager.getRecursive()));
             prop.setProperty("PROCESS_PENDING", String.valueOf(ConfigurationManager.getProcessPending()));
             prop.setProperty("FULLSCREEN", String.valueOf(ConfigurationManager.getFullscreen()));
-            prop.setProperty("RESTRICTED", String.valueOf(ConfigurationManager.getRestricted()));
             prop.setProperty("CONVERTER_PATH", ConfigurationManager.getConverterPath());
             prop.setProperty("CONVERTER_OPTIONS", ConfigurationManager.getConverterOptions());
             prop.setProperty("MONITOR_PATH", ConfigurationManager.getMonitorPath());
@@ -403,6 +382,7 @@ public class ConfigurationManager {
             prop.setProperty("MGF_OPERATION", String.valueOf(ConfigurationManager.getGenerateMgfOperation()));
             prop.setProperty("CONVERT_OPERATION", String.valueOf(ConfigurationManager.getConvertMzdbOperation()));
             prop.setProperty("UPLOAD_OPERATION", String.valueOf(ConfigurationManager.getUploadOperation()));
+            prop.setProperty("SPLIT_MZDB_OPERATION", String.valueOf(ConfigurationManager.getSplitMzdbOperation()));
             prop.setProperty("MOUNTING_POINT_LABEL", ConfigurationManager.getMountingPointLabel());
             prop.setProperty("DEBUG_MODE", String.valueOf(ConfigurationManager.getDebugMode()));
 
@@ -430,10 +410,14 @@ public class ConfigurationManager {
         modelData.add(new AttributeEntry("Monitored URL", getMonitorPath()));
         modelData.add(new AttributeEntry("Recursive Monitoring", String.valueOf(getRecursive())));
         modelData.add(new AttributeEntry("Process Pending", String.valueOf(getProcessPending())));
-        modelData.add(new AttributeEntry("Convert", String.valueOf(getConvertMzdbOperation())));
+        modelData.add(new AttributeEntry("Convert mzDb", String.valueOf(getConvertMzdbOperation())));
         if(getConvertMzdbOperation()){
             modelData.add(new AttributeEntry("Converter", getConverterPath()));
             modelData.add(new AttributeEntry("Converter Options", getConverterOptions()));
+        }
+        modelData.add(new AttributeEntry("Split Exploris mzDb", String.valueOf(getSplitMzdbOperation())));
+        if(getSplitMzdbOperation()){
+            modelData.add(new AttributeEntry("Split mzDb extension", FileProcessingExec.SPLIT_SUFFIX));
         }
         modelData.add(new AttributeEntry("Export mgf", String.valueOf(getGenerateMgfOperation())));
         if(getGenerateMgfOperation()){

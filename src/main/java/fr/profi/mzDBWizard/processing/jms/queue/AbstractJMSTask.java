@@ -41,7 +41,7 @@ public abstract class AbstractJMSTask  extends AbstractTaskWithInfo implements M
         STATE_FAILED,
         STATE_WAITING,
         STATE_DONE
-    };
+    }
 
     // callback is called by the AccessServiceThread when the service is done
     protected AbstractJMSCallback m_callback;
@@ -89,9 +89,8 @@ public abstract class AbstractJMSTask  extends AbstractTaskWithInfo implements M
 
     /**
      * Method called by the AccessJMSManagerThread to ask for the service to be done
-     * @throws javax.jms.JMSException
      */
-    public void askJMS() throws JMSException {
+    public void askJMS() {
         try {
 
             /*
@@ -131,15 +130,14 @@ public abstract class AbstractJMSTask  extends AbstractTaskWithInfo implements M
      */
     public abstract void taskRun() throws JMSException;
 
-    public void setTaskInfoRequest(String content) throws JMSException{
-        m_taskInfo.setRequestURL(m_producer.getDestination().toString());
+    public void setTaskInfoRequest(String content) {
         m_taskInfo.setRequestContent(content);
     }
 
     protected void addSourceToMessage(Message message) throws JMSException  {
 
         StringBuilder userLoginSB = new StringBuilder();
-        userLoginSB.append("Unknonw user");
+        userLoginSB.append("mzDbWizard user");
 
         String hostIP;
         try {
@@ -177,7 +175,6 @@ public abstract class AbstractJMSTask  extends AbstractTaskWithInfo implements M
     public final void onMessage(final Message jmsMessage) {
 
         long endRun = System.currentTimeMillis();
-//        this.m_taskInfo.setDuration(endRun-m_startRun);
         this.m_taskInfo.setDuration(endRun-m_taskInfo.getStartTimestamp());
 
         if(jmsMessage != null) {

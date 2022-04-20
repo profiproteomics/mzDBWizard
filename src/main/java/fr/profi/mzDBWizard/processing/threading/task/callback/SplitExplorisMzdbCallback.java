@@ -19,7 +19,7 @@ public class SplitExplorisMzdbCallback extends AbstractCallback {
 
   @Override
   public void run(boolean success, long taskId) {
-    if (!success ||m_mzdbFiles == null || m_mzdbFiles.isEmpty()) {
+    if (!success || m_mzdbFiles == null || m_mzdbFiles.isEmpty()) {
       m_logger.warn(" Can't Process Split Exploris mzdb Callback ! ");
       return;
     }

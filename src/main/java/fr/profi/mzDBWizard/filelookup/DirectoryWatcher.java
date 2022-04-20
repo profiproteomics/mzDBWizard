@@ -16,36 +16,19 @@
  */
 package fr.profi.mzDBWizard.filelookup;
 
- import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import fr.profi.mzDBWizard.configuration.ConfigurationManager;
+import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 
- import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
- import fr.profi.mzDBWizard.processing.threading.task.GenerateMgfFromMzdbTask;
-import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
-import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
-import fr.profi.mzDBWizard.processing.threading.task.callback.GenerateMgfFromMzdbCallback;
-import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
-import fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask;
- import fr.profi.mzDBWizard.processing.threading.task.callback.UploadMzdbCallback;
-import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
-import org.slf4j.LoggerFactory;
-import fr.profi.mzDBWizard.configuration.ConfigurationManager;
-import java.io.File;
+import static java.nio.file.LinkOption.NOFOLLOW_LINKS;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  *
@@ -94,23 +77,25 @@ public class DirectoryWatcher implements Runnable  {
 
                 File[] listOfFiles = dir.toFile().listFiles();
 
-                logger.debug("Directory " + dir.toString() + " was registered. The folder contains " + listOfFiles.length + " files.");
+                if(listOfFiles!=null) {
+                    logger.debug("Directory " + dir.toString() + " was registered. The folder contains " + listOfFiles.length + " files.");
 
-                for (int i = 0; i < listOfFiles.length; i++) {
-                    File f = listOfFiles[i];
-                    if (f.isFile()) {
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        File f = listOfFiles[i];
+                        if (f.isFile()) {
 
-                        String lowerPath = f.getAbsolutePath().toLowerCase();
-                        if (lowerPath.endsWith(".raw") || lowerPath.endsWith(".wiff")) {
-                            // we have a raw file
-                            FileProcessingExec.launchRawFileTasks(f);
+                            String lowerPath = f.getAbsolutePath().toLowerCase();
+                            if (lowerPath.endsWith(FileProcessingExec.RAW_SUFFIX) || lowerPath.endsWith(FileProcessingExec.WIFF_SUFFIX)) {
+                                // we have a raw file
+                                FileProcessingExec.launchRawFileTasks(f);
 
-                        } else if (lowerPath.endsWith(".mzdb")) {
-                            // we have a mzdb file
-                            FileProcessingExec.launchMzdbFileTasks(f);
+                            } else if (lowerPath.endsWith(FileProcessingExec.MZDB_SUFFIX)) {
+                                // we have a mzdb file
+                                FileProcessingExec.launchMzdbFileTasks(f);
+                            }
+
+
                         }
-
-
                     }
                 }
 
@@ -189,16 +174,16 @@ public class DirectoryWatcher implements Runnable  {
                     String fileName = child.toString();
                     String fileNameLowerCase = fileName.toLowerCase();
 
-                    if (!fileNameLowerCase.endsWith(".raw") && !fileNameLowerCase.endsWith(".wiff") && !fileNameLowerCase.endsWith(".mzdb")) {
+                    if (!fileNameLowerCase.endsWith(FileProcessingExec.RAW_SUFFIX) && !fileNameLowerCase.endsWith(FileProcessingExec.WIFF_SUFFIX) && !fileNameLowerCase.endsWith(FileProcessingExec.MZDB_SUFFIX)) {
                         continue;
                     }
 
                     File f = new File(fileName);
                     if (kind == ENTRY_CREATE) {
-                        if (fileNameLowerCase.endsWith(".raw") || fileNameLowerCase.endsWith(".wiff")) {
+                        if (fileNameLowerCase.endsWith(FileProcessingExec.RAW_SUFFIX) || fileNameLowerCase.endsWith(FileProcessingExec.WIFF_SUFFIX)) {
                             // we have a raw file
                             FileProcessingExec.launchRawFileTasks(f);
-                        } else if (fileNameLowerCase.endsWith(".mzdb")) {
+                        } else if (fileNameLowerCase.endsWith(FileProcessingExec.MZDB_SUFFIX)) {
                             // we have a mzdb file
                             FileProcessingExec.launchMzdbFileTasks(f);
                         }

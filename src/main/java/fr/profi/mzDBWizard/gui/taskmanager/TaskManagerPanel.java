@@ -55,7 +55,6 @@ public class TaskManagerPanel extends JPanel implements ActionListener {
 
     public TaskManagerPanel() {
 
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         setLayout(new BorderLayout());
         add(initTasksPanel(), BorderLayout.CENTER);

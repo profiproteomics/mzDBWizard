@@ -28,13 +28,12 @@ public class WatcherExecution {
 
     private static File m_monitoringDirectory;
     private static ThreadPoolExecutor m_watcherExecutor;
-    private static WatcherPoolMonitor m_directoryWatcher;
     private static WatcherExecution m_instance;
 
     public static void initInstance(File monitoringDirectory) {
         m_monitoringDirectory = monitoringDirectory;
         m_instance = new WatcherExecution();
-        m_directoryWatcher = new WatcherPoolMonitor(m_monitoringDirectory, m_watcherExecutor, 10);
+        WatcherPoolMonitor m_directoryWatcher = new WatcherPoolMonitor(m_monitoringDirectory, m_watcherExecutor, 10);
         Thread thread = new Thread(m_directoryWatcher);
         thread.start();
     }

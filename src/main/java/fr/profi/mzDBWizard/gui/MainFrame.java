@@ -63,9 +63,9 @@ import javax.swing.JTable;
  */
 public class MainFrame extends JFrame implements WindowListener, ActionListener {
 
-    public MainFrame(Dimension dimension, Dimension minDimension) {
+    public MainFrame() {
 
-        setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.WAND_HAT_ICON).getImage());
+        setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.LOGO_ICON).getImage());
 
         BuildInformation buildInformation = new BuildInformation();
 
@@ -75,30 +75,15 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
         setLayout(new GridLayout(1, 1));
 
-        if (!ConfigurationManager.getFullscreen()) {
-            setLocationRelativeTo(null);
-        }
-
         addWindowListener(this);
 
         if (ConfigurationManager.getFullscreen()) {
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            setSize(screenSize);
             setExtendedState(JFrame.MAXIMIZED_BOTH);
-        } else {
-            setSize(dimension);
         }
-
-        setMinimumSize(minDimension);
-
         JTabbedPane m_tabbedPane = new JTabbedPane();
-        m_tabbedPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        m_tabbedPane.setPreferredSize(new Dimension(800, 600));
-        m_tabbedPane.setMinimumSize(new Dimension(800, 600));
+        m_tabbedPane.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
         TaskManagerPanel m_taskManager = new TaskManagerPanel();
-        //Thread taskManagerThread = new Thread(m_taskManager);
-        //taskManagerThread.start();
 
         m_tabbedPane.addTab("Tasks", m_taskManager);
         if (ConfigurationManager.getDebugMode()) {
@@ -107,19 +92,12 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
         setJMenuBar(initJMenuBar());
 
-        JPanel executionPanel = getExecutionPanel();
-
-        JSplitPane m_splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, m_tabbedPane, executionPanel);
+        JSplitPane m_splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, m_tabbedPane, getExecutionPanel());
         m_splitPane.setOneTouchExpandable(true);
 
-        //Provide minimum sizes for the two components in the split pane
-        Dimension minimumSize = new Dimension(480, 320);
-        m_tabbedPane.setMinimumSize(minimumSize);
-        executionPanel.setMinimumSize(minimumSize);
-
-        m_splitPane.setDividerLocation(1366);
-
         add(m_splitPane);
+        pack();
+        m_splitPane.setDividerLocation(0.65);
 
     }
 
@@ -130,22 +108,20 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.NORTH;
         c.fill = GridBagConstraints.BOTH;
-        c.insets = new java.awt.Insets(5, 5, 5, 5);
+        c.insets = new java.awt.Insets(5, 0, 5, 0);
 
         c.weighty = 0;
-        c.weightx = 1;
+        c.weightx = 0.5;
 
         c.gridx = 0;
         c.gridy = 0;
 
         OverviewScrollPane executionOverview = OverviewScrollPane.getSingleton();
         executionOverview.setBorder(BorderFactory.createTitledBorder("Current Execution"));
-
-
         panel.add(executionOverview, c);
 
         c.gridy++;
-
+        c.weighty = 1;
         AttributesTableModel m_configurationTableModel = new AttributesTableModel(ConfigurationManager.getConfigurationModelData());
         JTable configurationTable = new JTable(m_configurationTableModel);
         configurationTable.setTableHeader(null);
@@ -158,18 +134,11 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
         JScrollPane confScrollPane = new JScrollPane(configurationTable);
         confScrollPane.setBorder(BorderFactory.createTitledBorder("Configuration"));
         
-        configurationTable.setMinimumSize(new Dimension(configurationTable.getWidth(), 230));
-        confScrollPane.setMinimumSize(new Dimension(configurationTable.getWidth(), 230));
-        confScrollPane.setPreferredSize(new Dimension(configurationTable.getWidth(), 230));
-
         panel.add(confScrollPane, c);
 
         c.gridy++;
-
-        c.weighty = 1;
-        
+        c.weighty = 0;
         panel.add(Box.createVerticalBox(), c);
-
         return panel;
     }
 

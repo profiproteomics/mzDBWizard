@@ -79,7 +79,7 @@ public class AboutDialog extends JDialog implements ActionListener, KeyListener 
         
         String title = buildInformation.getModuleName() + " ("+buildInformation.getVersion()+")";
         
-        String body = buildInformation.getModuleName()+" is developed in the context of ProFi (French Proteomics National Infrastructure) by BIG (Grenoble): EDyP Team, BGE Laboratory (U1038 CEA/INSERM/UJF)";
+        String body = buildInformation.getModuleName()+" is developed in the context of ProFi (French Proteomics National Infrastructure) by IRIG (Grenoble): EDyP Team, BGE Laboratory (U1038 CEA/INSERM/UJF)";
 
         JLabel titleLabel = new JLabel(title, JLabel.CENTER);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 20));

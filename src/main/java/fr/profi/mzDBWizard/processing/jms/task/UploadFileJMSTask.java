@@ -85,7 +85,6 @@ public class UploadFileJMSTask extends AbstractJMSTask {
             String destFolderPath = m_pathLabel + File.separator + destFileName.substring(destFileName.indexOf(m_monitorDirectoryPath.toAbsolutePath().toString()) + m_monitorDirectoryPath.toAbsolutePath().toString().length(), destFileName.lastIndexOf(FilenameUtils.getName(destFileName)));
             message.setStringProperty("dest_folder_path", destFolderPath);
 
-
             addSourceToMessage(message);
             addDescriptionToMessage(message);
 

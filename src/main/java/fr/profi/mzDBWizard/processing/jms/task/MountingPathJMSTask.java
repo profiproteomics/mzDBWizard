@@ -60,7 +60,6 @@ public class MountingPathJMSTask extends AbstractJMSTask {
         message.setJMSReplyTo(m_replyQueue);
         message.setStringProperty(ConfigurationManager.getProlineServiceNameKey(), FILESYSTEM_SERVICE_NAME);
         //message.setStringProperty(JMSConnectionManager.PROLINE_SERVICE_VERSION_KEY, m_version);
-        //addSourceToMessage(message);  // not used
         addDescriptionToMessage(message);
 
         setTaskInfoRequest(message.getText());

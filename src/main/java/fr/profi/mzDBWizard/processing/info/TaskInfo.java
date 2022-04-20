@@ -52,13 +52,12 @@ public class TaskInfo  implements Comparable<TaskInfo> {
         VISIBLE,
         VISIBLE_IF_ERROR,
         HIDDEN
-    };
+    }
 
     private int m_taskType;
     private String m_taskDescription = null;
 
     private String m_requestContent = null;
-    private String m_requestURL = null;
     private VisibilityEnum m_visibility = VisibilityEnum.VISIBLE;
 
     private int m_state;
@@ -146,10 +145,6 @@ public class TaskInfo  implements Comparable<TaskInfo> {
 
     public void setJmsMessageID(String jmsMsgId){
         this.m_jmsMessageID = jmsMsgId;
-    }
-
-    public void setRequestURL(String requestURL) {
-        m_requestURL = requestURL;
     }
 
     public void setRunning(boolean saveTimestamp) {

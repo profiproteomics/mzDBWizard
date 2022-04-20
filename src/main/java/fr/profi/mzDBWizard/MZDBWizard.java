@@ -61,7 +61,8 @@ public class MZDBWizard {
 
 
                 SettingsAndReviewDialog settingsAndReviewDialog = new SettingsAndReviewDialog();
-
+                settingsAndReviewDialog.setVisible(true);
+                settingsAndReviewDialog.setLocationRelativeTo(null);
                 if (settingsAndReviewDialog.getAnswer() == SettingsAndReviewDialog.Answer.OK) {
 
                     JDialog waitDialog = new JDialog();
@@ -108,8 +109,12 @@ public class MZDBWizard {
                                 public void run(boolean success, long taskId) {
                                     if (success) {
                                         waitDialog.setVisible(false);
-                                        MainFrame frame = new MainFrame(new Dimension(1280, 720), new Dimension(1280, 720));
+                                        MainFrame frame = new MainFrame();
                                         frame.setVisible(true);
+                                        if (!ConfigurationManager.getFullscreen()) {
+                                            frame.setLocationRelativeTo(null);
+                                        }
+
                                     } else {
                                         waitDialog.setVisible(false);
                                         JOptionPane.showMessageDialog(null, "Something is wrong with raw2mzDB.exe. See your system administrator...", "Converter Test Error", JOptionPane.ERROR_MESSAGE);
@@ -139,8 +144,11 @@ public class MZDBWizard {
                             @Override
                             public void run() {
                                 waitDialog.setVisible(false);
-                                MainFrame frame = new MainFrame(new Dimension(1280, 720), new Dimension(1280, 720));
+                                MainFrame frame = new MainFrame();
                                 frame.setVisible(true);
+                                if (!ConfigurationManager.getFullscreen()) {
+                                    frame.setLocationRelativeTo(null);
+                                }
                             }
                         });
                     }

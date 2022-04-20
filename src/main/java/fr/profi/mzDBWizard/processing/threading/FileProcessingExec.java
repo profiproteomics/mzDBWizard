@@ -3,12 +3,10 @@ package fr.profi.mzDBWizard.processing.threading;
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.filelookup.WatcherExecution;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
-import fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask;
-import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
-import fr.profi.mzDBWizard.processing.threading.task.GenerateMgfFromMzdbTask;
-import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
+import fr.profi.mzDBWizard.processing.threading.task.*;
 import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback;
 import fr.profi.mzDBWizard.processing.threading.task.callback.GenerateMgfFromMzdbCallback;
+import fr.profi.mzDBWizard.processing.threading.task.callback.SplitExplorisMzdbCallback;
 import fr.profi.mzDBWizard.processing.threading.task.callback.UploadMzdbCallback;
 
 import java.io.File;
@@ -18,6 +16,7 @@ public class FileProcessingExec {
   public  static final String MZDB_SUFFIX=".mzdb";
   public  static final String MGF_SUFFIX=".mgf";
   public  static final String RAW_SUFFIX=".raw";
+  public  static final String WIFF_SUFFIX=".wiff";
   public  static final String SPLIT_SUFFIX=".split.mzdb";
 
   public static void launchRawFileTasks(File rawFile){
@@ -33,15 +32,16 @@ public class FileProcessingExec {
 
   public static void launchMzdbFileTasks(File mzdbFile, boolean fromSplitTask) {
 
+    if(!fromSplitTask && mzdbFile.getName().endsWith(SPLIT_SUFFIX)) {
+      fromSplitTask=true;
+    }
 
-    //TODO Test split ...
-//    if (ConfigurationManager.getMgfOperation()) {
-//      GenerateMgfFromMzdbCallback callback = new GenerateMgfFromMzdbCallback();
-//      TaskManagerThread.getTaskManagerThread().addTask(new GenerateMgfFromMzdbTask(callback, mzdbFile));
-//      callback.setMzdbFile(mzdbFile);
-//
-//    }
-    if (ConfigurationManager.getGenerateMgfOperation()) {
+    if (ConfigurationManager.getSplitMzdbOperation() && !fromSplitTask) {
+      SplitExplorisMzdbCallback callback = new SplitExplorisMzdbCallback();
+      TaskManagerThread.getTaskManagerThread().addTask(new SplitExplorisMzdbTask(callback, mzdbFile));
+
+    }
+    else if (ConfigurationManager.getGenerateMgfOperation()) {
       GenerateMgfFromMzdbCallback callback = new GenerateMgfFromMzdbCallback();
       TaskManagerThread.getTaskManagerThread().addTask(new GenerateMgfFromMzdbTask(callback, mzdbFile));
       callback.setMzdbFile(mzdbFile);

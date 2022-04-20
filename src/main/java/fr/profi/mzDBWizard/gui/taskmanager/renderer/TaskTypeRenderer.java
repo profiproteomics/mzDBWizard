@@ -38,7 +38,7 @@ public class TaskTypeRenderer extends DefaultTableCellRenderer {
                 break;
             case TaskInfo.DELETE_TASK:
                 setToolTipText("Delete File");
-                setText("Delete File");
+                setText("File Delete");
                 setIcon(null);
                 break;
             case TaskInfo.MOUNTING_POINT_TASK:
@@ -48,7 +48,7 @@ public class TaskTypeRenderer extends DefaultTableCellRenderer {
                 break;
             case TaskInfo.GENERATE_TASK:
                 setToolTipText("Generate new file");
-                setText("Generate");
+                setText("Generator");
                 setIcon(DefaultIcons.getSingleton().getIcon(DefaultIcons.GEAR_ICON));
                 break;
             default:

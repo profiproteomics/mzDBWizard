@@ -58,29 +58,13 @@ public class UploadMzdbTask extends AbstractFileTask {
     protected boolean runTaskImplementation() {
         logger.info("  -->  Upload file "+getFile().getName());
 
-        // Create task for JMS and waits for its end
 
-        AbstractJMSCallback callback = new AbstractJMSCallback() {
-
-            @Override
-            public boolean mustBeCalledInAWT() {
-                return true;
-            }
-
-            @Override
-            public void run(boolean success) {
-                // nothing to do for the moment
-
-            }
-        };
-
-
-        UploadFileJMSTask task = new UploadFileJMSTask(callback, getFile(), m_directoryPath, m_pathLabel);
+        UploadFileJMSTask task = new UploadFileJMSTask(null, getFile(), m_directoryPath, m_pathLabel);
         Object mutex = task.getMutex();
         AccessJMSManagerThread.getAccessJMSManagerThread().addTask(task);
 
         // wait for the JMS task to finish
-        boolean m_uploadResult = false;
+        boolean m_uploadResult;
         try {
              synchronized (mutex) {
                  while (!task.isTaskFinished()) {

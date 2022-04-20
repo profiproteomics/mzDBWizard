@@ -32,6 +32,7 @@ public class DefaultIcons {
 
     public static final String BROOM_ICON = "broom.png";
     public static final String WAND_HAT_ICON = "wand-hat.png";
+    public static final String LOGO_ICON = "logo_30.png";
     public static final String BLOCK_ICON = "block.png";
     public static final String RESOURCES_ICON = "resource-monitor.png";
     public static final String INFORMATION_ICON = "information-button.png";
