@@ -6,7 +6,7 @@ import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
 import fr.profi.mzDBWizard.processing.threading.task.callback.SplitExplorisMzdbCallback;
-import fr.profi.mzknife.filter.MzDBSplitter;
+import fr.profi.mzknife.mzdb.MzDBSplitter;
 
 import java.io.File;
 import java.util.ArrayList;
