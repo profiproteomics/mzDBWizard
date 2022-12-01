@@ -40,6 +40,8 @@ public class ConfigurationManager {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger("ApplicationProperties");
 
+    private static boolean read_only_cfg = false;
+
     public static final String HOST_TO_SELECT =  "<host>";
     private static String jms_server_host = HOST_TO_SELECT;
     private static int jms_server_port = 5445;
@@ -56,7 +58,7 @@ public class ConfigurationManager {
 
     private static ArrayList<String> path_labels;
     
-    private static String converter_path = "." + File.separator + "converter" + File.separator + "mzdb_x64_0.9.7" + File.separator + "raw2mzDB.exe";
+    private static String converter_path = "." + File.separator + "converter" + File.separator +"raw2mzDB.exe";
 
     private static String converter_options;
 
@@ -149,7 +151,15 @@ public class ConfigurationManager {
     public static boolean getDeleteRaw() {
         return delete_raw;
     }
-    
+
+    public static boolean isReadOnlyCfg() {
+        return read_only_cfg;
+    }
+
+    public static void setReadOnlyCfg(boolean read_only_cfg) {
+        ConfigurationManager.read_only_cfg = read_only_cfg;
+    }
+
     public static void setDeleteMzdb(boolean b) {
         delete_mzdb = b;
     }
@@ -274,7 +284,10 @@ public class ConfigurationManager {
             logger.debug("Loading Configuration File: " + cfgFile.getAbsolutePath() + " ..");
             
             prop.load(is);
-            
+            String roVal = prop.getOrDefault("READ_ONLY", "false").toString();
+            ConfigurationManager.setReadOnlyCfg( Boolean.parseBoolean(roVal));
+            logger.debug("ReadOnly : "+ConfigurationManager.isReadOnlyCfg());
+
             ConfigurationManager.setJmsServerHost(prop.getProperty("JMS_SERVER_HOST") != null ? prop.getProperty("JMS_SERVER_HOST") : jms_server_host);
             JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(ConfigurationManager.getJmsServerHost());
             logger.debug(jms_server_host);
@@ -365,6 +378,7 @@ public class ConfigurationManager {
             output = new FileOutputStream(MzDBUtil.CONFIGURATION_FILE);
 
             // set the properties value
+            prop.setProperty("READ_ONLY", String.valueOf(ConfigurationManager.isReadOnlyCfg()));
             prop.setProperty("JMS_SERVER_HOST", ConfigurationManager.getJmsServerHost());
             prop.setProperty("JMS_SERVER_PORT", String.valueOf(ConfigurationManager.getJmsServerPort()));
             prop.setProperty("SERVICE_REQUEST_QUEUE_NAME", ConfigurationManager.getServiceRequestQueueName());

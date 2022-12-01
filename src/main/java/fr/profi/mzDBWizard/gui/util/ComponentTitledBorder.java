@@ -41,6 +41,9 @@ public class ComponentTitledBorder implements Border, MouseListener, MouseMotion
         container.addMouseMotionListener(this);
     }
 
+    public void setEnabledComponent(boolean b){
+        comp.setEnabled(b);
+    }
     @Override
     public boolean isBorderOpaque() {
         return true;

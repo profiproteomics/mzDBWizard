@@ -22,6 +22,8 @@ import fr.profi.mzDBWizard.gui.pendingtask.PendingTaskTypeRenderer;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel;
 import fr.profi.mzDBWizard.gui.util.ComponentTitledBorder;
 import fr.profi.mzDBWizard.gui.util.GenericTableRenderer;
+import fr.profi.mzDBWizard.gui.util.GuiUtil;
+import fr.profi.mzDBWizard.processing.CreateMgfCommand;
 import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel.Action;
 import fr.profi.mzDBWizard.gui.util.DefaultIcons;
@@ -30,7 +32,6 @@ import fr.profi.mzDBWizard.processing.jms.queue.AccessJMSManagerThread;
 import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
 import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
 import fr.profi.mzDBWizard.util.BuildInformation;
-import fr.profi.mzDBWizard.configuration.ConfigurationManager.PrecursorComputationMethod;
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 
@@ -49,21 +50,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+import java.util.List;
+import javax.swing.*;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -118,8 +107,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     //MGF OPERATION VARIABLES
     private JCheckBox m_generateMgfOperationCheckbox;
     private boolean m_doGenerateMgf;
-    private JComboBox m_precursorComputationMethodCBox;
-    private JTextField m_mzTolerance, m_intensityCutoff;
+//    private JComboBox m_precursorComputationMethodCBox;
+//    private JTextField m_mzTolerance, m_intensityCutoff;
 
     //CONVERSION OPERATION VARIABLES
     private JTextField m_converterTxtField;
@@ -138,22 +127,23 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     //CLEANUP OPERATION VARIABLES
     private JCheckBox[] m_cleanupOperationCheckboxes;
 
+    private CreateMgfCommand m_createMgfCommand;
+
     public SettingsAndReviewDialog() {
 
         setModal(true);
 
         BuildInformation buildInformation = new BuildInformation();
         setTitle("Welcome to " + buildInformation.getModuleName() + " (" + buildInformation.getVersion() + ")");
-
         setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.LOGO_ICON).getImage());
-
         setResizable(true);
-
         setLayout(new BorderLayout());
 
         m_answer = Answer.NULL_ANSWER;
+        m_createMgfCommand = CreateMgfCommand.getInstance();
 
-        add(init(), BorderLayout.CENTER);
+        JPanel internalPanel =  init();
+        add(internalPanel, BorderLayout.CENTER);
         add(initButtons(), BorderLayout.SOUTH);
 
         addKeyListener(this);
@@ -162,6 +152,15 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         pack();
 
+        if(ConfigurationManager.isReadOnlyCfg()){
+            List<JComponent> all = GuiUtil.getAllChildrenOfClass(internalPanel, JComponent.class);
+            for(JComponent compo : all){
+                if(compo instanceof JPanel && compo.getBorder() instanceof ComponentTitledBorder){
+                    ((ComponentTitledBorder) compo.getBorder()).setEnabledComponent(false);
+                }
+                compo.setEnabled(false);
+            }
+        }
     }
 
     @Override
@@ -187,34 +186,40 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         if (validateJComponents() && ensureUniqueness() && (m_currentStep == Step.REVIEW_STEP)) {
             m_answer = Answer.OK;
 
-            ConfigurationManager.setMonitorPath(m_monitoredDirectory.getText());
-            ConfigurationManager.setRecursiveWatching(m_recursiveCheckBox.isSelected());
-
-            ConfigurationManager.setProcessPending(m_processPendingCheckBox.isSelected());
-
-            ConfigurationManager.setConvertMzdbOperation(m_convertOperationCheckbox.isSelected());
-            if (m_convertOperationCheckbox.isSelected()) {
-                ConfigurationManager.setConverterPath(m_converterTxtField.getText());
-                ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
-            }
-            ConfigurationManager.setSpliMzdbOperation(m_doSplit);
-
-            ConfigurationManager.setUploadOperation(m_doUpload);
-            if (m_doUpload) {
-                JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText().trim());
-                ConfigurationManager.setJmsServerHost(m_host.getText());
-                ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
-            }
-
-            ConfigurationManager.setGenerateMgfOperation(m_doGenerateMgf);
-            if (m_doGenerateMgf) {
-                ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
-                ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
-                ConfigurationManager.setPrecursorComputationMethod(m_precursorComputationMethodCBox.getSelectedItem().toString());
-            }
-
-            ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
-            ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
+            updateConfiguration();
+//            ConfigurationManager.setMonitorPath(m_monitoredDirectory.getText());
+//            ConfigurationManager.setRecursiveWatching(m_recursiveCheckBox.isSelected());
+//
+//            ConfigurationManager.setProcessPending(m_processPendingCheckBox.isSelected());
+//
+//            ConfigurationManager.setConvertMzdbOperation(m_convertOperationCheckbox.isSelected());
+//            if (m_convertOperationCheckbox.isSelected()) {
+//                ConfigurationManager.setConverterPath(m_converterTxtField.getText());
+//                ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
+//            }
+//            ConfigurationManager.setSpliMzdbOperation(m_doSplit);
+//
+//            ConfigurationManager.setUploadOperation(m_doUpload);
+//            if (m_doUpload) {
+//                JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText().trim());
+//                ConfigurationManager.setJmsServerHost(m_host.getText());
+//                ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
+//            }
+//
+//            ConfigurationManager.setGenerateMgfOperation(m_doGenerateMgf);
+//            if (m_doGenerateMgf) {
+//                //VDS TO DO ADD other config values
+//                ConfigurationManager.setMzTolerance(m_createMgfCommand.getCommand().mzTolPPM);
+//                ConfigurationManager.setIntensityCutoff(m_createMgfCommand.getCommand().intensityCutoff);
+//                ConfigurationManager.setPrecursorComputationMethod(m_createMgfCommand.getCommand().precMzComputation);
+//
+////                ConfigurationManager.setMzTolerance(Float.parseFloat(_mzTolerance.getText()));
+////                ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
+////                ConfigurationManager.setPrecursorComputationMethod(m_precursorComputationMethodCBox.getSelectedItem().toString());
+//            }
+//
+//            ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
+//            ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
 
             ConfigurationManager.saveProperties();
             setVisible(false);
@@ -486,10 +491,10 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_convertOperationCheckbox.setFocusable(false);
         m_convertOperationCheckbox.addItemListener(ie -> {
             m_doConvert = m_convertOperationCheckbox.isSelected();
-            updateConversionOptions();
+            enableConversionOptions();
         });
 
-        updateConversionOptions();
+        enableConversionOptions();
 
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.CENTER;
@@ -530,7 +535,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         return convertOperationPanel;
     }
 
-    private void updateConversionOptions() {
+    private void enableConversionOptions() {
         m_converterTxtField.setEnabled(m_doConvert);
         m_converterButton.setEnabled(m_doConvert);
     }
@@ -538,115 +543,141 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private JPanel initGenerateMgfOperationPanel() {
         JPanel mgfOperationPanel = new JPanel();
         mgfOperationPanel.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.CENTER;
-        c.fill = GridBagConstraints.BOTH;
-        c.insets = new java.awt.Insets(5, 5, 5, 5);
-
         m_doGenerateMgf = ConfigurationManager.getGenerateMgfOperation();
         m_generateMgfOperationCheckbox = new JCheckBox("Generate mgf");
         m_generateMgfOperationCheckbox.setSelected(m_doGenerateMgf);
         m_generateMgfOperationCheckbox.setFocusable(false);
         m_generateMgfOperationCheckbox.addItemListener(ie -> {
             m_doGenerateMgf = m_generateMgfOperationCheckbox.isSelected();
-            updateMgfOptions();
+            enableMgfOptions();
         });
 
-        JLabel mzToleranceLabel = new JLabel("m/z tolerance (ppm) : ");
-        mzToleranceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        m_mzTolerance = new JTextField(String.valueOf(ConfigurationManager.getMzTolerance()));
-        m_mzTolerance.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                m_generateMgfOperationCheckbox.setSelected(true);
-                m_doGenerateMgf=true;
-                repaint();
-                m_mzTolerance.requestFocus();
-            }
-        });
-        m_mzTolerance.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        m_mzTolerance.setFocusable(true);
-        m_mzTolerance.addKeyListener(this);
-
-        JLabel intensityCutoffLabel = new JLabel("Intensity cutoff : ");
-        intensityCutoffLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        m_intensityCutoff = new JTextField(String.valueOf(ConfigurationManager.getIntensityCutoff()));
-        m_intensityCutoff.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                m_generateMgfOperationCheckbox.setSelected(true);
-                m_doGenerateMgf=true;
-                repaint();
-                m_intensityCutoff.requestFocus();
-            }
-        });
-        m_intensityCutoff.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        m_intensityCutoff.setFocusable(true);
-        m_intensityCutoff.addKeyListener(this);
-
-        JLabel precursorMethodLabel = new JLabel("Precursor m/z computation method : ");
-        precursorMethodLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        m_precursorComputationMethodCBox = new JComboBox();
-
-        m_precursorComputationMethodCBox.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (!m_doGenerateMgf) {
-                    m_generateMgfOperationCheckbox.setSelected(true);
-                    m_doGenerateMgf=true;
-                    repaint();
-                    m_precursorComputationMethodCBox.showPopup();
-                }
-            }
-        });
-
-        for (PrecursorComputationMethod method : PrecursorComputationMethod.values()) {
-            m_precursorComputationMethodCBox.addItem(method.toString());
-        }
-
-        m_precursorComputationMethodCBox.setSelectedItem(ConfigurationManager.getPrecursorComputationMethod().toString());
-
-        updateMgfOptions();
-
-        c.gridy = 0;
-
-        c.weightx = 0;
-        c.gridx = 0;
-        mgfOperationPanel.add(mzToleranceLabel, c);
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.CENTER;
+        c.fill = GridBagConstraints.BOTH;
+        c.insets = new java.awt.Insets(5, 5, 5, 5);
         c.weightx = 1;
-        c.gridx = 1;
-        mgfOperationPanel.add(m_mzTolerance, c);
-
-        c.gridy++;
-
-        c.weightx = 0;
-        c.gridx = 0;
-        mgfOperationPanel.add(intensityCutoffLabel, c);
-        c.weightx = 1;
-        c.gridx = 1;
-        mgfOperationPanel.add(m_intensityCutoff, c);
-
-        c.gridy++;
-
-        c.weightx = 0;
-        c.gridx = 0;
-        mgfOperationPanel.add(precursorMethodLabel, c);
-        c.weightx = 1;
-        c.gridx = 1;
-        mgfOperationPanel.add(m_precursorComputationMethodCBox, c);
+        mgfOperationPanel.add(m_createMgfCommand.getConfigurationPanel(), c);
 
         mgfOperationPanel.setBorder(new ComponentTitledBorder(m_generateMgfOperationCheckbox, mgfOperationPanel, BorderFactory.createEtchedBorder()));
+        return mgfOperationPanel;
+    }
+
+    private JPanel initGenerateMgfOperationPanelPrev() {
+        JPanel mgfOperationPanel = new JPanel();
+//        mgfOperationPanel.setLayout(new GridBagLayout());
+//        GridBagConstraints c = new GridBagConstraints();
+//        c.anchor = GridBagConstraints.CENTER;
+//        c.fill = GridBagConstraints.BOTH;
+//        c.insets = new java.awt.Insets(5, 5, 5, 5);
+//
+//        m_doGenerateMgf = ConfigurationManager.getGenerateMgfOperation();
+//        m_generateMgfOperationCheckbox = new JCheckBox("Generate mgf");
+//        m_generateMgfOperationCheckbox.setSelected(m_doGenerateMgf);
+//        m_generateMgfOperationCheckbox.setFocusable(false);
+//        m_generateMgfOperationCheckbox.addItemListener(ie -> {
+//            m_doGenerateMgf = m_generateMgfOperationCheckbox.isSelected();
+//            updateMgfOptions();
+//        });
+//
+//        JLabel mzToleranceLabel = new JLabel("m/z tolerance (ppm) : ");
+//        mzToleranceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+//
+//        m_mzTolerance = new JTextField(String.valueOf(ConfigurationManager.getMzTolerance()));
+//        m_mzTolerance.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                m_generateMgfOperationCheckbox.setSelected(true);
+//                m_doGenerateMgf=true;
+//                repaint();
+//                m_mzTolerance.requestFocus();
+//            }
+//        });
+//        m_mzTolerance.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+//        m_mzTolerance.setFocusable(true);
+//        m_mzTolerance.addKeyListener(this);
+//
+//        JLabel intensityCutoffLabel = new JLabel("Intensity cutoff : ");
+//        intensityCutoffLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+//
+//        m_intensityCutoff = new JTextField(String.valueOf(ConfigurationManager.getIntensityCutoff()));
+//        m_intensityCutoff.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                m_generateMgfOperationCheckbox.setSelected(true);
+//                m_doGenerateMgf=true;
+//                repaint();
+//                m_intensityCutoff.requestFocus();
+//            }
+//        });
+//        m_intensityCutoff.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+//        m_intensityCutoff.setFocusable(true);
+//        m_intensityCutoff.addKeyListener(this);
+//
+//        JLabel precursorMethodLabel = new JLabel("Precursor m/z computation method : ");
+//        precursorMethodLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+//
+//        m_precursorComputationMethodCBox = new JComboBox();
+//
+//        m_precursorComputationMethodCBox.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                if (!m_doGenerateMgf) {
+//                    m_generateMgfOperationCheckbox.setSelected(true);
+//                    m_doGenerateMgf=true;
+//                    repaint();
+//                    m_precursorComputationMethodCBox.showPopup();
+//                }
+//            }
+//        });
+//
+//        for (PrecursorComputationMethod method : PrecursorComputationMethod.values()) {
+//            m_precursorComputationMethodCBox.addItem(method.toString());
+//        }
+//
+//        m_precursorComputationMethodCBox.setSelectedItem(ConfigurationManager.getPrecursorComputationMethod().toString());
+//
+//        updateMgfOptions();
+//
+//        c.gridy = 0;
+//
+//        c.weightx = 0;
+//        c.gridx = 0;
+//        mgfOperationPanel.add(mzToleranceLabel, c);
+//        c.weightx = 1;
+//        c.gridx = 1;
+//        mgfOperationPanel.add(m_mzTolerance, c);
+//
+//        c.gridy++;
+//
+//        c.weightx = 0;
+//        c.gridx = 0;
+//        mgfOperationPanel.add(intensityCutoffLabel, c);
+//        c.weightx = 1;
+//        c.gridx = 1;
+//        mgfOperationPanel.add(m_intensityCutoff, c);
+//
+//        c.gridy++;
+//
+//        c.weightx = 0;
+//        c.gridx = 0;
+//        mgfOperationPanel.add(precursorMethodLabel, c);
+//        c.weightx = 1;
+//        c.gridx = 1;
+//        mgfOperationPanel.add(m_precursorComputationMethodCBox, c);
+//
+//        mgfOperationPanel.setBorder(new ComponentTitledBorder(m_generateMgfOperationCheckbox, mgfOperationPanel, BorderFactory.createEtchedBorder()));
 
         return mgfOperationPanel;
     }
 
-    private void updateMgfOptions() {
-        m_mzTolerance.setEnabled(m_doGenerateMgf);
-        m_intensityCutoff.setEnabled(m_doGenerateMgf);
-        m_precursorComputationMethodCBox.setEnabled(m_doGenerateMgf);
+    private void enableMgfOptions() {
+//        m_mzTolerance.setEnabled(m_doGenerateMgf);
+//        m_intensityCutoff.setEnabled(m_doGenerateMgf);
+//        m_precursorComputationMethodCBox.setEnabled(m_doGenerateMgf);
+        GuiUtil.enableAllChildrenOfClass(m_createMgfCommand.getConfigurationPanel(), JComponent.class, m_doGenerateMgf);
+        if(m_doGenerateMgf)
+            m_createMgfCommand.getConfigurationPanel().updateComponents();
     }
 
     private JPanel initUploadOperationPanel() {
@@ -665,7 +696,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_uploadOperationCheckbox.addItemListener(ie -> {
 
             m_doUpload = m_uploadOperationCheckbox.isSelected();
-            updateUploadOptions();
+            enableUploadOptions();
             if (m_doUpload) {
                 m_uploadOperationCheckbox.setFocusPainted(false);
                 if (m_host != null) {
@@ -739,7 +770,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         });
 
-        updateUploadOptions();
+        enableUploadOptions();
 
         if (m_doUpload && !m_host.getText().equalsIgnoreCase(ConfigurationManager.HOST_TO_SELECT)) {
             requestMountingPoints();
@@ -816,7 +847,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     }
 
-    private void updateUploadOptions() {
+    private void enableUploadOptions() {
         m_host.setEnabled(m_doUpload);
         m_mountingPointComboBox.setEnabled(m_doUpload);
 
@@ -944,10 +975,14 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         ConfigurationManager.setSpliMzdbOperation(m_doSplit);
 
         ConfigurationManager.setGenerateMgfOperation(m_doGenerateMgf);
-        ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
-        ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
+        ConfigurationManager.setMzTolerance(m_createMgfCommand.getCommand().mzTolPPM);
+        ConfigurationManager.setIntensityCutoff(m_createMgfCommand.getCommand().intensityCutoff);
+        ConfigurationManager.setPrecursorComputationMethod(m_createMgfCommand.getCommand().precMzComputation);
 
-       ConfigurationManager.setPrecursorComputationMethod(m_precursorComputationMethodCBox.getSelectedItem().toString());
+//        ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
+//        ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
+//
+//       ConfigurationManager.setPrecursorComputationMethod(m_precursorComputationMethodCBox.getSelectedItem().toString());
 
         ConfigurationManager.setUploadOperation(m_doUpload);
         ConfigurationManager.setJmsServerHost(m_host.getText());
@@ -1145,8 +1180,12 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     private boolean validateMgfConfiguration() {
         try {
-            Double.parseDouble(m_mzTolerance.getText());
-            Double.parseDouble(m_intensityCutoff.getText());
+            if(! m_createMgfCommand.buildCommand()) {
+                m_createMgfCommand.showError();
+                return false;
+            }
+//            Double.parseDouble(m_mzTolerance.getText());
+//            Double.parseDouble(m_intensityCutoff.getText());
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Check m/z tolerance and intensity cutoff.", "Invalid values", JOptionPane.ERROR_MESSAGE);
             return false;
