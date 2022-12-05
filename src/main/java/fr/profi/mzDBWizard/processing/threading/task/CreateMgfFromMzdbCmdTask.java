@@ -17,15 +17,14 @@
 package fr.profi.mzDBWizard.processing.threading.task;
 
 import com.almworks.sqlite4java.SQLiteException;
-import fr.profi.mzDBWizard.configuration.ConfigurationManager;
+import fr.profi.mzDBWizard.processing.CreateMgfCommand;
 import fr.profi.mzDBWizard.processing.info.TaskError;
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
 import fr.profi.mzDBWizard.util.FileUtility;
-import fr.profi.mzdb.io.writer.mgf.*;
-
+import fr.profi.mzknife.MzDbProcessing;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -37,9 +36,10 @@ import java.io.IOException;
  *
  * @author JPM235353
  */
-public class GenerateMgfFromMzdbTask extends AbstractFileTask {
+public class CreateMgfFromMzdbCmdTask extends AbstractFileTask {
 
-    public GenerateMgfFromMzdbTask(AbstractCallback callback, File mzdbFile) {
+
+    public CreateMgfFromMzdbCmdTask(AbstractCallback callback, File mzdbFile) {
         super(callback, new TaskInfo("Generate mgf from  "+mzdbFile.getName(), TaskInfo.GENERATE_TASK,true,  TaskInfo.VisibilityEnum.VISIBLE), mzdbFile);
     }
 
@@ -66,14 +66,13 @@ public class GenerateMgfFromMzdbTask extends AbstractFileTask {
 
     private boolean generateMgf(File mzdbFile) {
         try {
-            MgfWriter writer = new MgfWriter(mzdbFile.getAbsolutePath());
-            writer.write(mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", getPrecursorComputer(), ConfigurationManager.getIntensityCutoff(), true);
-            writer.getMzDbReader().close();
-
+            String outputFileName = FilenameUtils.removeExtension(mzdbFile.getAbsolutePath())+".mgf";
+            CreateMgfCommand.getInstance().getCommand().mzdbFile=mzdbFile.getAbsolutePath();
+            CreateMgfCommand.getInstance().getCommand().outputFile=outputFileName;
             String log = " mgf file generated from "+ mzdbFile.getAbsolutePath() +".";
             logger.info(log);
             m_taskInfo.addLog(log);
-
+            MzDbProcessing.mzdbcreateMgf(CreateMgfCommand.getInstance().getCommand());
             return true;
             //m_logs.append(mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".tmp"))).append(" has just been exported in .mgf format." + "\n");
         } catch (SQLiteException | ClassNotFoundException ex) {
@@ -88,26 +87,10 @@ public class GenerateMgfFromMzdbTask extends AbstractFileTask {
             m_taskError = new TaskError("Mgf Generate Failure", "Generation faced an IOException. Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "Converter faced an IOException. Check input file's integrity."));
             logger.error("IOException while generating mgf file : " + mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".")) + ".mgf", ex);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return false;
     }
 
-    private IPrecursorComputation getPrecursorComputer() {
-
-        IPrecursorComputation precComp = null;
-
-        if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.PROLINE_REFINED_PRECURSOR_MZ)) {
-            precComp = new IsolationWindowPrecursorExtractor(ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.THERMO_REFINED_PRECURSOR_MZ)) {
-            precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.REFINED_THERMO, ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.MZDB_ACCESS_REFINED_PRECURSOR_MZ)) {
-            precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.REFINED, ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.SELECTED_ION_MZ)) {
-            precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.SELECTED_ION_MZ, ConfigurationManager.getMzTolerance());
-        } else if (ConfigurationManager.getPrecursorComputationMethod().equals(ConfigurationManager.PrecursorComputationMethod.MAIN_PRECURSOR_MZ)) {
-            precComp = new DefaultPrecursorComputer(PrecursorMzComputationEnum.MAIN_PRECURSOR_MZ, ConfigurationManager.getMzTolerance());
-        }
-
-        return precComp;
-    }
 }

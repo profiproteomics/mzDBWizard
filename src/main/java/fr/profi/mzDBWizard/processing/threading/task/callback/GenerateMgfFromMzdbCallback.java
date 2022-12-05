@@ -17,9 +17,7 @@
 package fr.profi.mzDBWizard.processing.threading.task.callback;
 
 import fr.profi.mzDBWizard.configuration.ConfigurationManager;
-import fr.profi.mzDBWizard.filelookup.WatcherExecution;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.filelookup.WatcherPoolMonitor;
 import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
 import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
@@ -47,12 +45,12 @@ public class GenerateMgfFromMzdbCallback extends AbstractCallback {
             return;
         }
 
-        m_logger.info( " - Finish  mgf generation from "+m_mzdbFile.getName()+ "... getUploadOperation  "+ConfigurationManager.getUploadOperation()+" getDeleteMzdb "+ ConfigurationManager.getDeleteMzdb());
+        m_logger.info( " - Finish  mgf generation from "+m_mzdbFile.getName()+ "... getUploadOperation  "+ConfigurationManager.getProcessUpload()+" getDeleteMzdb "+ ConfigurationManager.getDeleteMzdb());
 
 
 
         // if Upload is asked for mzdb...
-        if (ConfigurationManager.getUploadOperation()) {
+        if (ConfigurationManager.getProcessUpload()) {
 
             UploadMzdbCallback callback = new UploadMzdbCallback();
             callback.setMzdbFile(m_mzdbFile);

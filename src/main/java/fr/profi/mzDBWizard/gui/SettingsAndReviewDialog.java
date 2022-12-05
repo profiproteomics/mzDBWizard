@@ -55,6 +55,8 @@ import javax.swing.*;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -65,6 +67,8 @@ import org.apache.commons.io.FilenameUtils;
  * @author AK249877
  */
 public class SettingsAndReviewDialog extends JDialog implements ActionListener, KeyListener {
+
+    private static final Logger m_logger = LoggerFactory.getLogger(SettingsAndReviewDialog.class);
 
     public enum Step {
 
@@ -221,7 +225,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 //            ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
 //            ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
 
-            ConfigurationManager.saveProperties();
+            ConfigurationManager.saveProperties(m_createMgfCommand);
             setVisible(false);
         }
     }
@@ -375,8 +379,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         clearMountingPoints();
 
-        for (int i = 0; i < ConfigurationManager.getPathLabels().size(); i++) {
-            m_mountingPointComboBox.addItem(ConfigurationManager.getPathLabels().get(i));
+        for (int i = 0; i < ConfigurationManager.getMountingPointPathLabels().size(); i++) {
+            m_mountingPointComboBox.addItem(ConfigurationManager.getMountingPointPathLabels().get(i));
         }
 
         if (m_lastMountingPoint != null && m_mountingPointComboBox.getSelectedIndex() > 0) {
@@ -543,7 +547,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private JPanel initGenerateMgfOperationPanel() {
         JPanel mgfOperationPanel = new JPanel();
         mgfOperationPanel.setLayout(new GridBagLayout());
-        m_doGenerateMgf = ConfigurationManager.getGenerateMgfOperation();
+        m_doGenerateMgf = ConfigurationManager.getProcessGenerateMgf();
         m_generateMgfOperationCheckbox = new JCheckBox("Generate mgf");
         m_generateMgfOperationCheckbox.setSelected(m_doGenerateMgf);
         m_generateMgfOperationCheckbox.setFocusable(false);
@@ -560,6 +564,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         mgfOperationPanel.add(m_createMgfCommand.getConfigurationPanel(), c);
 
         mgfOperationPanel.setBorder(new ComponentTitledBorder(m_generateMgfOperationCheckbox, mgfOperationPanel, BorderFactory.createEtchedBorder()));
+        enableMgfOptions();
         return mgfOperationPanel;
     }
 
@@ -688,7 +693,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         c.fill = GridBagConstraints.BOTH;
         c.insets = new java.awt.Insets(5, 5, 5, 5);
 
-        m_doUpload = ConfigurationManager.getUploadOperation();
+        m_doUpload = ConfigurationManager.getProcessUpload();
         m_uploadOperationCheckbox = new JCheckBox("Upload");
         m_uploadOperationCheckbox.setSelected(m_doUpload);
         m_uploadOperationCheckbox.setFocusable(false);
@@ -863,7 +868,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         c.fill = GridBagConstraints.BOTH;
         c.insets = new java.awt.Insets(5, 5, 5, 5);
 
-        m_doSplit = ConfigurationManager.getSplitMzdbOperation();
+        m_doSplit = ConfigurationManager.getProcessSplitMzdb();
         m_splitMzdbOperationCheckbox = new JCheckBox("Split Exploris mzdb");
         m_splitMzdbOperationCheckbox.setSelected(m_doSplit);
         m_splitMzdbOperationCheckbox.setFocusable(false);
@@ -972,19 +977,18 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         ConfigurationManager.setConverterPath(m_converterTxtField.getText());
         ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
 
-        ConfigurationManager.setSpliMzdbOperation(m_doSplit);
+        ConfigurationManager.setProcessSplitMzdb(m_doSplit);
 
-        ConfigurationManager.setGenerateMgfOperation(m_doGenerateMgf);
-        ConfigurationManager.setMzTolerance(m_createMgfCommand.getCommand().mzTolPPM);
-        ConfigurationManager.setIntensityCutoff(m_createMgfCommand.getCommand().intensityCutoff);
-        ConfigurationManager.setPrecursorComputationMethod(m_createMgfCommand.getCommand().precMzComputation);
-
-//        ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
-//        ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
-//
-//       ConfigurationManager.setPrecursorComputationMethod(m_precursorComputationMethodCBox.getSelectedItem().toString());
-
-        ConfigurationManager.setUploadOperation(m_doUpload);
+        ConfigurationManager.setProcessGenerateMgf(m_doGenerateMgf);
+//        ConfigurationManager.setMzTolerance(m_createMgfCommand.getCommand().mzTolPPM);
+//        ConfigurationManager.setIntensityCutoff(m_createMgfCommand.getCommand().intensityCutoff);
+//        ConfigurationManager.setPrecursorComputationMethod(m_createMgfCommand.getCommand().precMzComputation);
+//        ConfigurationManager.setExportProlineTitle(m_createMgfCommand.getCommand().exportProlineTitle);
+//        ConfigurationManager.setProcessPClean(m_createMgfCommand.getCommand().pClean);
+//        if(m_createMgfCommand.getCommand().pCleanConfig != null)
+//            ConfigurationManager.setPCleanConfigName(m_createMgfCommand.getCommand().pCleanConfig.getConfigCommandValue());
+//         ConfigurationManager.setPCleanLabelMethodName(m_createMgfCommand.getCommand().pCleanLabelMethodName);
+        ConfigurationManager.setProcessUpload(m_doUpload);
         ConfigurationManager.setJmsServerHost(m_host.getText());
         ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
 
@@ -1181,7 +1185,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private boolean validateMgfConfiguration() {
         try {
             if(! m_createMgfCommand.buildCommand()) {
-                m_createMgfCommand.showError();
+                m_createMgfCommand.showErrorMessage();
                 return false;
             }
 //            Double.parseDouble(m_mzTolerance.getText());

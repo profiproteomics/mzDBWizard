@@ -119,7 +119,7 @@ public class MountingPathJMSTask extends AbstractJMSTask {
                 }
             }
 
-            ConfigurationManager.setPathLabels(pathLabels);
+            ConfigurationManager.setMoutingPointPathLabels(pathLabels);
 
 
         }

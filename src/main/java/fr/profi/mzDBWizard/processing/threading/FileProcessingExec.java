@@ -36,18 +36,19 @@ public class FileProcessingExec {
       fromSplitTask=true;
     }
 
-    if (ConfigurationManager.getSplitMzdbOperation() && !fromSplitTask) {
+    if (ConfigurationManager.getProcessSplitMzdb() && !fromSplitTask) {
       SplitExplorisMzdbCallback callback = new SplitExplorisMzdbCallback();
       TaskManagerThread.getTaskManagerThread().addTask(new SplitExplorisMzdbTask(callback, mzdbFile));
 
     }
-    else if (ConfigurationManager.getGenerateMgfOperation()) {
+    else if (ConfigurationManager.getProcessGenerateMgf()) {
       GenerateMgfFromMzdbCallback callback = new GenerateMgfFromMzdbCallback();
-      TaskManagerThread.getTaskManagerThread().addTask(new GenerateMgfFromMzdbTask(callback, mzdbFile));
+//      TaskManagerThread.getTaskManagerThread().addTask(new GenerateMgfFromMzdbTask(callback, mzdbFile));
+      TaskManagerThread.getTaskManagerThread().addTask(new CreateMgfFromMzdbCmdTask(callback, mzdbFile));
       callback.setMzdbFile(mzdbFile);
 
     }
-    else if (ConfigurationManager.getUploadOperation()) {
+    else if (ConfigurationManager.getProcessUpload()) {
       UploadMzdbCallback callback = new UploadMzdbCallback();
       callback.setMzdbFile(mzdbFile);
       TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, mzdbFile, WatcherExecution.getInstance().getMonitoringDirectory(), ConfigurationManager.getMountingPointLabel()));
