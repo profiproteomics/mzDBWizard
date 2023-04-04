@@ -169,7 +169,7 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
         }
 
         //Apply patch before ending conversion task
-        String log = "NO Patching file " + m_outputMzdbFilePath ;
+        String log = "Patching file " + m_outputMzdbFilePath ;
         DIAIsolationWindowsPatch.patchDIAWindows(m_outputMzdbFilePath);
         m_taskInfo.addLog(log);
         logger.info(log);
