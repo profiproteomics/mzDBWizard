@@ -75,7 +75,7 @@ public class CreateMgfFromMzdbCmdTask extends AbstractFileTask {
             MzDbProcessing.mzdbcreateMgf(CreateMgfCommand.getInstance().getCommand());
             return true;
             //m_logs.append(mzdbFile.getAbsolutePath().substring(0, mzdbFile.getAbsolutePath().lastIndexOf(".tmp"))).append(" has just been exported in .mgf format." + "\n");
-        } catch (SQLiteException | ClassNotFoundException ex) {
+        } catch (SQLiteException  ex) {
             m_taskError = new TaskError("Mgf generate Failure", "SQLiteException or ClassNotFoundException while generating mgf file");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Mgf Export Failure", "SQLiteException or ClassNotFoundException while exporting mgf file"));
             logger.error("SQLiteException or ClassNotFoundException while generating mgf file", ex);

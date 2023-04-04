@@ -1184,6 +1184,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     private boolean validateMgfConfiguration() {
         try {
+            if(!m_doGenerateMgf)
+                return true;
             if(! m_createMgfCommand.buildCommand()) {
                 m_createMgfCommand.showErrorMessage();
                 return false;

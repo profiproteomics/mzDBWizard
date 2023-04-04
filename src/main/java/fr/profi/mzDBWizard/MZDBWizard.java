@@ -58,7 +58,11 @@ public class MZDBWizard {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (Exception e) {
+                    logger.warn("Error setting L&FG :" + e.getMessage());
+                }
 
                 SettingsAndReviewDialog settingsAndReviewDialog = new SettingsAndReviewDialog();
                 settingsAndReviewDialog.setVisible(true);

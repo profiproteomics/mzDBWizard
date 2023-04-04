@@ -287,7 +287,7 @@ public class FileUtility {
 
             }
 
-        } catch (ClassNotFoundException | FileNotFoundException | SQLiteException e) {
+        } catch (FileNotFoundException | SQLiteException e) {
             return false;
         } catch (StreamCorruptedException ex) {
             Logger.getLogger(MzDbReaderHelper.class.getName()).log(Level.SEVERE, null, ex);

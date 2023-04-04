@@ -25,6 +25,7 @@ import fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2Mzd
 import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.util.GenericUtil;
 import fr.profi.mzDBWizard.util.MzDBUtil;
+import fr.profi.mzdb.util.patch.DIAIsolationWindowsPatch;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -132,8 +133,6 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
         }
 
         if (m_conversionProcess != null && m_conversionProcess.exitValue() == 0) {
-//            File tmpFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb" + ".tmp");
-//            File mzdbFile = new File(m_file.getAbsolutePath().substring(0, m_file.getAbsolutePath().lastIndexOf(".")) + ".mzdb");
             File tmpFile = new File(m_outputTempFilePath);
             File mzdbFile = new File(m_outputMzdbFilePath);
             if (tmpFile.exists()) {
@@ -169,7 +168,13 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
             return false;
         }
 
-        String log = "Converting for file: " + getFile().getAbsolutePath() + " has come to its end.";
+        //Apply patch before ending conversion task
+        String log = "NO Patching file " + m_outputMzdbFilePath ;
+        DIAIsolationWindowsPatch.patchDIAWindows(m_outputMzdbFilePath);
+        m_taskInfo.addLog(log);
+        logger.info(log);
+
+        log = "Converting for file: " + getFile().getAbsolutePath() + " has come to its end.";
         m_taskInfo.addLog(log);
         logger.info(log);
 
