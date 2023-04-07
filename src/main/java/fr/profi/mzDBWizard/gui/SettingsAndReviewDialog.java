@@ -994,6 +994,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
         ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
+        ConfigurationManager.setProcessPending(m_processPendingCheckBox != null ? m_processPendingCheckBox.isSelected() : false);
     }
 
 
@@ -1059,6 +1060,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
                         m_processPendingCheckBox.setSelected(true);
                         m_triggerPermission = true;
                     }
+                    m_processExisting = m_processPendingCheckBox.isSelected();
                 }
 
             }
