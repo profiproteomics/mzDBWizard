@@ -100,7 +100,7 @@ public class FileUtility {
         return true;
     }
 
-    public static boolean isCompletelyWritten(File file) {
+    public static boolean isCompletelyWrittenOld(File file) {
         RandomAccessFile stream = null;
         try {
             stream = new RandomAccessFile(file, "rw");
@@ -115,6 +115,18 @@ public class FileUtility {
                     logger.error("Exception during closing file " + file.getName());
                 }
             }
+        }
+        return false;
+    }
+    public static boolean isCompletelyWritten(File file) {
+
+        try {
+            boolean success = file.renameTo(file);
+            if(!success)
+                logger.debug("1. Skipping file " + file.getName() + " for this iteration due it's not completely written");
+            return success;
+        } catch (Exception e) {
+            logger.debug("2. Skipping file " + file.getName() + " for this iteration due it's not completely written");
         }
         return false;
     }
