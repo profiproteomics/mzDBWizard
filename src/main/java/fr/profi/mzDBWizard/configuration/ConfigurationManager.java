@@ -36,13 +36,6 @@ import java.util.Properties;
  */
 public class ConfigurationManager {
 
-//    public static final String INTENSITY_CUTOFF_KEY = "PROCESS_MGF_INTENSITY_CUTOFF";
-//    public static final String PCLEAN_CONFIG_NAME_KEY = "PCLEAN_CONFIG_NAME";
-//    public static final String PRECURSOR_COMPUTATION_METHOD_KEY = "PROCESS_MGF_PRECURSOR_COMPUTATION_METHOD";
-//    public static final String EXPORT_PROLINE_TITLE_KEY = "PROCESS_MGF_EXPORT_PROLINE_TITLE";
-//    public static final String MZ_TOLERANCE_KEY = "PROCESS_MGF_MZ_TOLERANCE";
-//    public static final String PCLEAN_LABEL_METHOD_NAME_KEY = "PCLEAN_LABEL_METHOD_NAME";
-//    public static final String PROCESS_MGF_PCLEAN_KEY = "PROCESS_MGF_PCLEAN";
     public static final String PROCESS_GENERATE_MGF_KEY = "PROCESS_GENERATE_MGF";
 
     public static final String FULLSCREEN_KEY = "FULLSCREEN";
