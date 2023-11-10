@@ -163,11 +163,12 @@ public class DirectoryWatcher implements Runnable  {
                             }
                         }
                     } else {
-                        try {
-                            registerSingleDirectory(child);
-                        } catch (IOException ex) {
-                            logger.error("IOException on single directory registering!", ex);
-                        }
+//                        try {
+//                            registerSingleDirectory(child);
+//                        } catch (IOException ex) {
+//                            logger.error("IOException on single directory registering!", ex);
+//                        }
+                        logger.debug("... Do not consider sub folder ... ");
                     }
                 } else {
 
