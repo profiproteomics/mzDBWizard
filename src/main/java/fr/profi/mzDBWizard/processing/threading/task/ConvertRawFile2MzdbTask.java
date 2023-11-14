@@ -149,7 +149,8 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
                     return false;
                 }
             } else {
-                //JPM.WART : raw2mzdb.exe automatically rename .mzdb.tmp file to .mzDB . Rename to avoid duplicate file on server (.mzdb & .mzDB)
+                //JPM.WART : raw2mzdb.exe automatically rename .mzdb.tmp file to .mzDB .
+                // VDS: Rename to avoid duplicate file on server (.mzdb & .mzDB or .mzdb & .mzdb.temp.mzDB ) ? Depends on converter... To remove ?
                 mzdbFile.renameTo(mzdbFile);
             }
 
