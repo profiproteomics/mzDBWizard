@@ -63,9 +63,9 @@ public class ConfigurationManager {
 
 
 //    public enum PrecursorComputationMethod {
-//        MAIN_PRECURSOR_MZ, SELECTED_ION_MZ, MZDB_ACCESS_REFINED_PRECURSOR_MZ, THERMO_REFINED_PRECURSOR_MZ, PROLINE_REFINED_PRECURSOR_MZ, MGF_BOOST_V3_6
+//        MAIN_PRECURSOR_MZ, SELECTED_ION_MZ, MZDB_ACCESS_REFINED_PRECURSOR_MZ, THERMO_REFINED_PRECURSOR_MZ, PROLINE_REFINED_PRECURSOR_MZ, MGF_BOOST
 //    }
-//    String mgfBoostVDS="mgf_boost_v3.6";
+//    String mgfBoostVDS="mgf_boost";
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger("ApplicationProperties");
 

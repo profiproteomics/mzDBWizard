@@ -62,6 +62,12 @@
             <outputDirectory>lib</outputDirectory>
         </fileSet>
 
+        <fileSet>
+            <directory>${project.build.directory}/unzip-dependencies</directory>
+            <outputDirectory></outputDirectory>
+        </fileSet>
+
+
         <!-- Launching scripts with filtering to replace project.version properties -->
 <!--        <fileSet>-->
 <!--            <directory>${basedir}/script</directory>-->

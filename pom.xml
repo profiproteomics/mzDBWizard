@@ -29,7 +29,7 @@
         <dependency>
             <groupId>fr.profi.mgfboost</groupId>
             <artifactId>mgfBoost</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.oracle</groupId>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>fr.profi</groupId>
             <artifactId>mzdb-access_${scala.compat.version}</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.2.1-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>xerces</groupId>
@@ -92,7 +92,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>mzdb-processing_${scala.compat.version}</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -117,6 +117,13 @@
             <version>${sqlite4java.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>jdk</artifactId>
+            <version>17.0.3.1</version>
+            <type>zip</type>
+            <classifier>${os.classifier}</classifier>
+        </dependency>
 
     </dependencies>
 
@@ -327,7 +334,7 @@
                             </artifactItems>
                         </configuration>
                     </execution>
-                    <!-- Copy sqlite4java native libraries (Linux so and Windows dll) -->
+                    <!-- Copy sqlite4java native libraries (Linux so and Windows dll)
                     <execution>
                         <id>copy-dll</id>
                         <phase>package</phase>
@@ -359,6 +366,34 @@
                                 </artifactItem>
 
                             </artifactItems>
+                        </configuration>
+                    </execution> -->
+
+                    <execution>
+                        <id>copy-dll</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeTypes>dll,exe</includeTypes>
+                            <stripVersion>true</stripVersion>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-zip-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeTypes>zip</includeTypes>
+                            <outputDirectory>${project.build.directory}/unzip-dependencies</outputDirectory>
+                            <overWriteIfNewer>true</overWriteIfNewer>
                         </configuration>
                     </execution>
                 </executions>
@@ -428,5 +463,22 @@
 
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>windows-x64</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <os.classifier>windows-x64</os.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux-x64</id>
+            <properties>
+                <os.classifier>linux-x64</os.classifier>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
