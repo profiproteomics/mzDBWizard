@@ -26,6 +26,7 @@ import fr.profi.mzDBWizard.util.FileUtility;
 import fr.profi.mzDBWizard.util.GenericUtil;
 import fr.profi.mzDBWizard.util.MzDBUtil;
 import fr.profi.mzdb.util.patch.DIAIsolationWindowsPatch;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -193,7 +194,10 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
             String architecture = GenericUtil.getSystemArchitecture();
             if (architecture.contains("64")) {
                 List<String> command = new ArrayList<>();
-                command.add(ConfigurationManager.getConverterPath());
+                String converterPath = ConfigurationManager.getConverterPath();
+                String workingFolder = FilenameUtils.getFullPath(converterPath);
+                workingFolder = workingFolder.isEmpty() ? "./" : workingFolder;
+                command.add(converterPath);
                 if(ConfigurationManager.getConverterOptions() != null && !ConfigurationManager.getConverterOptions().trim().isEmpty()) {
                     String options = ConfigurationManager.getConverterOptions();
                     String[] eachOptions  = options.split(" ");
@@ -207,7 +211,7 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
                 command.add("-o");
                 command.add(m_outputTempFilePath);
 
-                m_conversionProcess = new ProcessBuilder().command(command).start();
+                m_conversionProcess = new ProcessBuilder().command(command).directory(new File(workingFolder)).start();
                 usedConverter = ConfigurationManager.getConverterPath();
             } else {
                 m_taskError = new TaskError("This installation package is not supported by this processor type. Contact your administrator.");
@@ -249,6 +253,7 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
             }
 
         } catch (IOException ex) {
+            ex.printStackTrace();
             m_taskError = new TaskError("Converter faced an IOException during conversion of " + getFile().getAbsolutePath() + ". Check input file's integrity.");
             //m_errorList.add(new ExecutionError(ExecutionError.ErrorClass.CRITICAL_ERROR, "Converter Failure", "Converter faced an IOException. Check input file's integrity."));
             logger.error("File convertion failed!");

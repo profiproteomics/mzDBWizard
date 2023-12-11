@@ -219,7 +219,7 @@ public class FileUtility {
         JFileChooser jFileChooser = new JFileChooser();
         jFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         jFileChooser.setMultiSelectionEnabled(false);
-        jFileChooser.addChoosableFileFilter(new FileNameExtensionFilter(".exe", "exe"));
+        jFileChooser.addChoosableFileFilter(new FileNameExtensionFilter(".exe", "exe", "bat"));
         jFileChooser.setAcceptAllFileFilterUsed(false);
         jFileChooser.setCurrentDirectory(new File(ConfigurationManager.getConverterPath()));
 
