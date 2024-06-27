@@ -328,7 +328,6 @@ public class ConfigurationManager {
         return debug_mode;
     }
 
-
     public static void loadProperties() {
         Properties prop = new Properties();
         InputStream is = null;
@@ -439,9 +438,6 @@ public class ConfigurationManager {
             prop.setProperty(CONVERTER_PATH_KEY, ConfigurationManager.getConverterPath());
             prop.setProperty(CONVERTER_OPTIONS_KEY, ConfigurationManager.getConverterOptions());
             prop.setProperty(MONITOR_PATH_KEY, ConfigurationManager.getMonitorPath());
-//            prop.setProperty(MZ_TOLERANCE_KEY, String.valueOf(ConfigurationManager.getMzTolerance()));
-//            prop.setProperty(INTENSITY_CUTOFF_KEY, String.valueOf(ConfigurationManager.getIntensityCutoff()));
-//            prop.setProperty(PRECURSOR_COMPUTATION_METHOD_KEY, ConfigurationManager.getPrecursorComputationMethod().toString());
             prop.setProperty(PROCESS_GENERATE_MGF_KEY, String.valueOf(ConfigurationManager.getProcessGenerateMgf()));
             prop.setProperty(PROCESS_CONVERT_KEY, String.valueOf(ConfigurationManager.getConvertMzdbOperation()));
             prop.setProperty(PROCESS_UPLOAD_KEY, String.valueOf(ConfigurationManager.getProcessUpload()));
@@ -449,10 +445,6 @@ public class ConfigurationManager {
             prop.setProperty(MOUNTING_POINT_LABEL_KEY, ConfigurationManager.getMountingPointLabel());
             prop.setProperty(DEBUG_MODE_KEY, String.valueOf(ConfigurationManager.getDebugMode()));
             prop.putAll(command.getCommandProperties());
-//            prop.setProperty(EXPORT_PROLINE_TITLE_KEY, String.valueOf(ConfigurationManager.isProlineTitleExported()));
-//            prop.setProperty(PROCESS_MGF_PCLEAN_KEY, String.valueOf(ConfigurationManager.getProcessPClean()));
-//            prop.setProperty(PCLEAN_LABEL_METHOD_NAME_KEY, ConfigurationManager.getPCleanLabelMethodName());
-//            prop.setProperty(PCLEAN_CONFIG_NAME_KEY, ConfigurationManager.getPCleanConfig() != null ? ConfigurationManager.getPCleanConfig().getConfigCommandValue(): "");
 
             // save properties to project root folder
             prop.store(output, null);

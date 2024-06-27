@@ -16,48 +16,37 @@
  */
 package fr.profi.mzDBWizard.gui;
 
+import fr.profi.mgfboost.ui.command.ui.MzdbCreateMgfPanel;
+import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.gui.overview.AttributesTableModel;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTask;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTaskTypeRenderer;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel;
+import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel.Action;
 import fr.profi.mzDBWizard.gui.util.ComponentTitledBorder;
+import fr.profi.mzDBWizard.gui.util.DefaultIcons;
 import fr.profi.mzDBWizard.gui.util.GenericTableRenderer;
 import fr.profi.mzDBWizard.gui.util.GuiUtil;
 import fr.profi.mzDBWizard.processing.CreateMgfCommand;
-import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
-import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel.Action;
-import fr.profi.mzDBWizard.gui.util.DefaultIcons;
 import fr.profi.mzDBWizard.processing.jms.queue.AbstractJMSCallback;
 import fr.profi.mzDBWizard.processing.jms.queue.AccessJMSManagerThread;
 import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
+import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
 import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
 import fr.profi.mzDBWizard.util.BuildInformation;
 import fr.profi.mzDBWizard.util.FileUtility;
-import fr.profi.mzDBWizard.configuration.ConfigurationManager;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -544,11 +533,10 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         return mgfOperationPanel;
     }
 
-
     private void enableMgfOptions() {
         GuiUtil.enableAllChildrenOfClass(m_createMgfCommand.getConfigurationPanel(), JComponent.class, m_doGenerateMgf);
         if(m_doGenerateMgf)
-            m_createMgfCommand.getConfigurationPanel().updateComponents();
+            ((MzdbCreateMgfPanel)m_createMgfCommand.getConfigurationPanel()).updateComponents();
     }
 
     private JPanel initUploadOperationPanel() {
@@ -687,9 +675,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_refreshMountingPointsButton.setIcon(DefaultIcons.getSingleton().getIcon(DefaultIcons.HOURGLASS));
 
         JMSConnectionManager.getJMSConnectionManager().closeConnection(); //In case already connected !
-
         JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText().trim());
-
 
         AbstractJMSCallback callback = new AbstractJMSCallback() {
 
