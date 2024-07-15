@@ -88,7 +88,9 @@ public class ConfigurationManager {
     private static String mounting_point_label = "";
 
     // Converter Options
-    private static String converter_path = "." + File.separator + "converter" + File.separator +"raw2mzDB.exe";
+    private static String converter_exec = "mzdbConverter.bat";
+    private static String converter_path = "." + File.separator + "converter" + File.separator +"mzdb-converter"+File.separator+converter_exec/*+"raw2mzDB.exe"*/;
+
     private static String converter_options;
     private static boolean convert_mzdb_operation = true;
     private static boolean split_mzdb_operation = true;
@@ -262,7 +264,10 @@ public class ConfigurationManager {
     public static String getConverterPath() {
         return converter_path;
     }
-    
+
+    public static String getEmbeddedmzDBConverterExec(){
+        return converter_exec;
+    }
     public static void setMonitorPath(String s) {
         monitor_path = s;
     }

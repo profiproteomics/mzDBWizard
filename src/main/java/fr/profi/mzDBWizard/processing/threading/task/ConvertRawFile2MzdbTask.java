@@ -71,7 +71,7 @@ public class ConvertRawFile2MzdbTask extends AbstractFileTask {
         if(m_testMode){
             // check that test mzdb file does not exist
             File mzdbFile = new File(MzDBUtil.TEST_MZDB);
-            if (mzdbFile!= null && mzdbFile.exists()) {
+            if (mzdbFile.exists()) {
                 m_taskError = new TaskError("Test mzdb file corresponding to " + getFile().getAbsolutePath() + " already exists.");
                 return false;
             }
