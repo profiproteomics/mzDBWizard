@@ -38,7 +38,8 @@ public class SplitExplorisMzdbTask extends AbstractFileTask  {
     logger.debug("  -->  Split file "+getFile().getName());
 
     MzDBSplitter splitter = new MzDBSplitter(getFile());
-    splitter.setOutputFileExtension(FileProcessingExec.SPLIT_SUFFIX);
+    String tempSplitSuffix = FileProcessingExec.SPLIT_SUFFIX+".tmp";
+    splitter.setOutputFileExtension(tempSplitSuffix);
     boolean splitSuccess=  splitter.splitMzDbFile();
     if(!splitSuccess){
       MzDBSplitter.RETURN_CODE returnCode = splitter.getFinishStateCode();
@@ -60,11 +61,16 @@ public class SplitExplorisMzdbTask extends AbstractFileTask  {
       logger.info(" END Splitting {} into {} files : ",  getFile().getName(),m_outFiles.size() );
       StringBuilder msg =  new StringBuilder(" END Splitting ");
       msg.append(getFile().getName()).append(" into ").append(m_outFiles.size()).append("files : ");
+      List<File> newFile = new ArrayList<>();
       for(File f: m_outFiles){
-        logger.info(" Output File: {}", f.getName() );
+        String trueFileName = f.getName().substring(0, (f.getName().length()-4));
+        File trueFile = new File(f.getParentFile(), trueFileName);
+        boolean result =  f.renameTo(trueFile);
+        logger.info(" Output File: {} should be {}. rename result {}",f.getAbsolutePath(), trueFile.getAbsolutePath(), result );
         msg.append(f.getName()).append(";");
+        newFile.add(trueFile);
       }
-
+      m_outFiles = newFile;
       m_taskInfo.addLog(msg.toString());
 
       setCallbackFiles();
