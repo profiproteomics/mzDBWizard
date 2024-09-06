@@ -4,11 +4,11 @@ import fr.profi.mgfboost.ui.command.MzdbCreateMgfCommand;
 import fr.profi.mgfboost.ui.command.ui.AbstractCommandPanel;
 import fr.profi.mgfboost.ui.command.ui.MzdbCreateMgfPanel;
 import fr.profi.mzknife.CommandArguments;
+import fr.profi.mzknife.mzdb.MgfBoostConfigTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
-
 
 public class CreateMgfCommand extends MzdbCreateMgfCommand {
 
@@ -21,13 +21,7 @@ public class CreateMgfCommand extends MzdbCreateMgfCommand {
     private static final String CLEAN_LABEL_METHOD_NAME_KEY = "PROCESS_MGF_CLEAN_LABEL_METHOD_NAME";
     private static final String CLEAN_METHOD_NAME_KEY = "PROCESS_MGF_CLEAN_METHOD_NAME";
 
-    private static final String USE_HEADER_KEY = "PROCESS_MGF_USE_HEADER";
-    private static final String USE_SELECTION_WINDOW_KEY = "PROCESS_MGF_USE_SELECTION_WINDOW";
-    private static final String SW_MAX_PRECURSOR_COUNT_KEY = "PROCESS_MGF_SW_MAX_PRECURSOR_COUNT";
-    private static final String SW_INTENSITY_THRESHOLD_KEY = "PROCESS_MGF_SW_INTENSITY_THRESHOLD";
-    private static final String SCAN_SELECTOR_KEY = "PROCESS_MGF_SCAN_SELECTOR";
-    private static final String PIF_THRESHOLD_KEY = "PROCESS_MGF_PIF_THRESHOLD";
-    private static final String RANK_THRESHOLD_HEADER_KEY = "PROCESS_MGF_RANK_THRESHOLD";
+    private static final String MGFBOOST_CONFIG_TEMPLATE_KEY = "PROCESS_MGF_MGFBOOST_CONFIG_NAME";
 
     //Command PropertiesDefault Values
     private static float mz_tolerance = (float) 10.0;
@@ -36,6 +30,7 @@ public class CreateMgfCommand extends MzdbCreateMgfCommand {
 
     private static CreateMgfCommand instance;
     private final Logger logger = LoggerFactory.getLogger(CreateMgfCommand.class);
+    private MgfBoostConfigTemplate boostConfigTemplate;
 
     private CreateMgfCommand(){
         super();
@@ -49,7 +44,10 @@ public class CreateMgfCommand extends MzdbCreateMgfCommand {
 
     public AbstractCommandPanel<CommandArguments.MzDBCreateMgfCommand> getConfigurationPanel() {
         if (configurationPanel == null) {
-            configurationPanel = new MzdbCreateMgfPanel(false).updatePanelFromCommand(command);
+            MzdbCreateMgfPanel panel = new MzdbCreateMgfPanel(false);
+            panel.updatePanelFromCommand(command);
+            panel.setMgfBoostConfigTemplate(boostConfigTemplate);
+            configurationPanel = panel;
         }
         return configurationPanel;
     }
@@ -64,13 +62,9 @@ public class CreateMgfCommand extends MzdbCreateMgfCommand {
         prop.setProperty(CLEAN_LABEL_METHOD_NAME_KEY, command.cleanLabelMethodName);
         prop.setProperty(CLEAN_CONFIG_NAME_KEY, command.cleanConfig != null ? command.cleanConfig.getConfigCommandValue(): "");
         if (command.precMzComputation.equalsIgnoreCase("mgf_boost")) {
-            prop.setProperty(USE_HEADER_KEY, String.valueOf(command.useHeader));
-            prop.setProperty(USE_SELECTION_WINDOW_KEY, String.valueOf(command.useSelectionWindow));
-            prop.setProperty(SW_MAX_PRECURSOR_COUNT_KEY, String.valueOf(command.swMaxPrecursorsCount));
-            prop.setProperty(SW_INTENSITY_THRESHOLD_KEY, String.valueOf(command.swIntensityThreshold));
-            prop.setProperty(SCAN_SELECTOR_KEY, command.scanSelectorMode.toString());
-            prop.setProperty(PIF_THRESHOLD_KEY, String.valueOf(command.pifThreshold));
-            prop.setProperty(RANK_THRESHOLD_HEADER_KEY, String.valueOf(command.rankThreshold));
+            prop.setProperty(MGFBOOST_CONFIG_TEMPLATE_KEY, String.valueOf(((MzdbCreateMgfPanel)getConfigurationPanel()).getMgfBoostConfigTemplate()));
+        } else {
+            prop.setProperty(MGFBOOST_CONFIG_TEMPLATE_KEY, "");
         }
         return prop;
     }
@@ -90,29 +84,28 @@ public class CreateMgfCommand extends MzdbCreateMgfCommand {
 
         if (command.precMzComputation.equalsIgnoreCase("mgf_boost")) {
 
-            command.useHeader = Boolean.parseBoolean(prop.getOrDefault(USE_HEADER_KEY, command.useHeader).toString());
+            String boostConfigTemplateStr = prop.getOrDefault(MGFBOOST_CONFIG_TEMPLATE_KEY, MgfBoostConfigTemplate.DISCOVERY.toString()).toString();
+            boostConfigTemplate = MgfBoostConfigTemplate.valueOf(boostConfigTemplateStr);
+
+            command.useHeader = boostConfigTemplate.isUseHeader();
             logger.debug("useHeader: "+ command.useHeader);
 
-            command.useSelectionWindow = Boolean.parseBoolean(prop.getOrDefault(USE_SELECTION_WINDOW_KEY, command.useSelectionWindow).toString());
+            command.useSelectionWindow = boostConfigTemplate.isUseSelectionWindow();
             logger.debug("useSelectionWindow: "+ command.useSelectionWindow);
 
-            command.swMaxPrecursorsCount = Integer.parseInt(prop.getOrDefault(SW_MAX_PRECURSOR_COUNT_KEY, command.swMaxPrecursorsCount).toString());
+            command.swMaxPrecursorsCount = boostConfigTemplate.getSwMaxPrecursorsCount();
             logger.debug("swMaxPrecursorsCount: "+ command.swMaxPrecursorsCount);
 
-            command.swIntensityThreshold = Float.parseFloat(prop.getOrDefault(SW_INTENSITY_THRESHOLD_KEY, command.swIntensityThreshold).toString());
+            command.swIntensityThreshold = boostConfigTemplate.getSwIntensityThreshold();
             logger.debug("swIntensityThreshold: "+ command.swIntensityThreshold);
 
-            final CommandArguments.ScanSelectorMode scanSelectorMode = CommandArguments.ScanSelectorMode.valueOf(prop.getProperty(SCAN_SELECTOR_KEY));
-            if (scanSelectorMode != null)
-                command.scanSelectorMode = scanSelectorMode;
+            command.scanSelectorMode = boostConfigTemplate.getScanSelector();
+            logger.debug("scanSelectorMode: "+ command.scanSelectorMode);
 
-            logger.debug("scanSelectorMode: "+ scanSelectorMode);
-
-
-            command.pifThreshold = Double.parseDouble(prop.getOrDefault(PIF_THRESHOLD_KEY, command.pifThreshold).toString());
+            command.pifThreshold = boostConfigTemplate.getPifThreshold();
             logger.debug("pifThreshold: "+ command.pifThreshold);
 
-            command.rankThreshold = Integer.parseInt(prop.getOrDefault(RANK_THRESHOLD_HEADER_KEY, command.rankThreshold).toString());
+            command.rankThreshold = boostConfigTemplate.getRankThreshold();
             logger.debug("rankThreshold: "+ command.rankThreshold);
 
         }
