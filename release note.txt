@@ -1,0 +1,48 @@
+
+Version 1.0.0-SNAPSHOT suite 
+30/09/2021 add converter option
+
+Version 1.0.1 :
+~15/10/2021  
+Converter options bug fixes
+* Ajout de la relecture de convertisseur options + "process pending" dans le fichier.
+* supprime les espaces dans les "command" de ProcessBuilder
+
+15/11/2021 version 1.0.2-SNAPSHOT
+Different bug fixes :
+- do not try to upload multiple times the same file (due to monitoring on directory)
+- uploaded mzdb files must always have the extension .mzdb (and not mzDB)
+- on n'attend pas la conversion de tous les .raw pour lancer l'upload des .mzdb
+
+
+1.0.3-SNAPSHOT
+23/11/21
+fixe #23355 : Prise en compte d'un nouveau host pas immediat (meme si c'est le nouveau qui est affiché !)
+14/03/22
+Removed JMS Topic (not used and potentially generating problems)
+
+
+1.0.4-SNAPSHOT
+19/04/2022
+Refactoring:
+* Simplify configuration : remove Configuration.java, duplicates of ConfigurationManager.java
+* Mutualize some code in DirectoryWatcher
+* Rename ConvertMzdb2MgfTask.java to GenerateMgfFromMzdbTask and add specific task type (could be run in parallel of conversion)
+* Task processing : remove all action after convert from raw, except delete raw. Other tasks will be notify by DirectoryWatcher
+* Remove unecessary DeleteFileCallback.java, FileManager.java
+* Fixes some IDE warning
+
+Add Split mzdb 
+* Add split mzdb tasks  ==> add mzdb-swissknife dependency 
+* Add Split operation in configuration, define extension and return code
+* Code cleanup : remove unused properties; define some constant
+* GUI: remove fixed size and use Layout / pack ...
+
+Add JOptionPane error message in main.
+
+../12/2022
+- add Read_only option in config
+- add CreateMgfCommand grouping both Command & Panel (similar to ICommand in mgfBoost)
+- Refactor ConfigurationManager to use CreateMgfCommand for specific properties + add properties management in CreateMgfCommand
+- add setEnabledComponent in ComponentTitledBorder to delegate to component used in Title
+- add GuiUtil to go through components child
