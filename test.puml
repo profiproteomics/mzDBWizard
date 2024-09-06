@@ -1,0 +1,83 @@
+@startuml
+class fr.profi.mzDBWizard.processing.threading.task.callback.GenerateMgfFromMzdbCallback {
+- File m_mzdbFile
++ boolean mustBeCalledInAWT()
++ void run(boolean,long)
++ void setMzdbFile(File)
+}
+class fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask {
+- Path m_directoryPath
+- String m_pathLabel
++ int getType()
+# boolean runTaskImplementation()
+}
+class fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask {
++ int getType()
++ boolean precheck()
+# boolean runTaskImplementation()
+- boolean deleteFile(File)
+- boolean deleteFile(File,int)
+}
+class fr.profi.mzDBWizard.processing.threading.task.GenerateMgfFromMzdbTask {
++ int getType()
+# boolean runTaskImplementation()
+- boolean generateMgf(File)
+- IPrecursorComputation getPrecursorComputer()
+}
+class fr.profi.mzDBWizard.processing.threading.task.callback.UploadMzdbCallback {
+- File m_mzdbFile
++ boolean mustBeCalledInAWT()
++ void run(boolean,long)
++ void setMzdbFile(File)
+}
+class fr.profi.mzDBWizard.processing.threading.task.SplitExplorisMzdbTask {
+~ List<File> m_outFiles
++ int getType()
+- void setCallbackFiles()
+# boolean runTaskImplementation()
+}
+abstract class fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask {
+- File m_file
+# {abstract}boolean runTaskImplementation()
++ File getFile()
++ String getUniqueKey()
++ boolean precheck()
++ boolean runTask()
+}
+class fr.profi.mzDBWizard.processing.threading.task.callback.SplitExplorisMzdbCallback {
+- List<File> m_mzdbFiles
++ boolean mustBeCalledInAWT()
++ void run(boolean,long)
++ void setMzdbFiles(List<File>)
+}
+class fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask {
+- Process m_conversionProcess
+- boolean m_testMode
+- String m_outputTempFilePath
+- String m_outputMzdbFilePath
+- {static} int AVAILABLE_SPACE_THRESHOLD
++ int getType()
++ boolean precheck()
+# boolean runTaskImplementation()
+- boolean convertFile()
+- boolean checkSufficientDiskSpace()
+}
+class fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback {
+- File m_rawFile
++ boolean mustBeCalledInAWT()
++ void run(boolean,long)
++ void setRawFile(File)
+}
+
+
+fr.profi.mzDBWizard.processing.threading.AbstractCallback <|-- fr.profi.mzDBWizard.processing.threading.task.callback.GenerateMgfFromMzdbCallback
+fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask <|-- fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask
+fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask <|-- fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask
+fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask <|-- fr.profi.mzDBWizard.processing.threading.task.GenerateMgfFromMzdbTask
+fr.profi.mzDBWizard.processing.threading.AbstractCallback <|-- fr.profi.mzDBWizard.processing.threading.task.callback.UploadMzdbCallback
+fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask <|-- fr.profi.mzDBWizard.processing.threading.task.SplitExplorisMzdbTask
+fr.profi.mzDBWizard.processing.threading.queue.AbstractTask <|-- fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask
+fr.profi.mzDBWizard.processing.threading.AbstractCallback <|-- fr.profi.mzDBWizard.processing.threading.task.callback.SplitExplorisMzdbCallback
+fr.profi.mzDBWizard.processing.threading.task.AbstractFileTask <|-- fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask
+fr.profi.mzDBWizard.processing.threading.AbstractCallback <|-- fr.profi.mzDBWizard.processing.threading.task.callback.ConvertRawFile2MzdbCallback
+@enduml
