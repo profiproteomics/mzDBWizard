@@ -17,23 +17,24 @@
 package fr.profi.mzDBWizard;
 
 
-import fr.profi.mzDBWizard.configuration.CurrentExecution;
-import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
-import fr.profi.mzDBWizard.util.FileManager;
-import fr.profi.mzDBWizard.gui.util.DefaultIcons;
+import fr.profi.mzDBWizard.configuration.ConfigurationManager;
+import fr.profi.mzDBWizard.filelookup.WatcherExecution;
 import fr.profi.mzDBWizard.gui.MainFrame;
 import fr.profi.mzDBWizard.gui.SettingsAndReviewDialog;
-import fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask;
+import fr.profi.mzDBWizard.gui.util.DefaultIcons;
+import fr.profi.mzDBWizard.processing.info.TaskError;
+import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
+import fr.profi.mzDBWizard.processing.threading.task.ConvertRawFile2MzdbTask;
 import fr.profi.mzDBWizard.util.FileUtility;
-import fr.profi.mzDBWizard.configuration.ConfigurationManager;
-import java.io.File;
-
+import fr.profi.mzDBWizard.util.MzDBUtil;
+import fr.profi.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.awt.Dimension;
-import java.lang.reflect.InvocationTargetException;
+
 import javax.swing.*;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 
 /**
@@ -46,51 +47,26 @@ import javax.swing.*;
  */
 public class MZDBWizard {
 
+    static Logger logger = LoggerFactory.getLogger("mzDBWizard");
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 
-
-//        //VDS : can't we use of logback.properties ? More easier to change at runtime => generated log file : Proline_Studio ?! FILE "21 juillet 2017.log" => better "mzdbWizard_20170721.log" ?!
-//        LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-//
-//        FileAppender fileAppender = new FileAppender();
-//        fileAppender.setContext(loggerContext);
-//        fileAppender.setName("timestamp");
-//        fileAppender.setAppend(true);
-//
-//        String dateString = DateFormat.getDateInstance(DateFormat.SHORT).format(System.currentTimeMillis()).replaceAll("/", "");
-//
-//        String filename = "log" + File.separator + "mzdbWizard_" + dateString + ".log";
-//
-//        fileAppender.setFile(filename);
-//
-//        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-//        encoder.setContext(loggerContext);
-//        encoder.setPattern("%date{dd MMM yyyy HH:mm:ss.SSS} [%thread] %-5level %logger{36} %mdc - %msg%n");
-//        encoder.start();
-//
-//        fileAppender.setEncoder(encoder);
-//        fileAppender.start();
-//
-//        Logger logbackLogger = loggerContext.getLogger("ROOT");
-//        logbackLogger.setLevel(Level.DEBUG);
-//        logbackLogger.addAppender(fileAppender);
-//
-//        // OPTIONAL: print logback internal status messages
-//        StatusPrinter.print(loggerContext);
-
-        Logger logger = LoggerFactory.getLogger("mzDBWizard");
         logger.info("Start mzDBWWizard. Read configuration");
         ConfigurationManager.loadProperties();
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (Exception e) {
+                    logger.warn("Error setting L&FG :" + e.getMessage());
+                }
 
                 SettingsAndReviewDialog settingsAndReviewDialog = new SettingsAndReviewDialog();
-
+                settingsAndReviewDialog.setVisible(true);
+                settingsAndReviewDialog.setLocationRelativeTo(null);
                 if (settingsAndReviewDialog.getAnswer() == SettingsAndReviewDialog.Answer.OK) {
 
                     JDialog waitDialog = new JDialog();
@@ -105,29 +81,25 @@ public class MZDBWizard {
                     waitDialog.setLocationRelativeTo(null);
                     waitDialog.setVisible(true);
 
-                    ConfigurationManager.setConverterPath(settingsAndReviewDialog.getConverterURL());
 
-                    CurrentExecution.initInstance(new File(settingsAndReviewDialog.getDirectoryURL()), settingsAndReviewDialog.getConfiguration());
+                    WatcherExecution.initInstance(new File(ConfigurationManager.getMonitorPath()));
 
-//                    File mzdbFile = FileManager.getSingleton().getFile(FileManager.TEST_MZDB);
-                    File mzdbFile = new File(FileManager.TEST_MZDB);
-                    if ((mzdbFile != null) && (mzdbFile.exists())) {
+                    File mzdbFile = new File(MzDBUtil.TEST_MZDB);
+                    if (mzdbFile.exists()) {
                         FileUtility.forceDeleteFile(mzdbFile);
                     }
 
-//                    File tempFile = FileManager.getSingleton().getFile2(FileManager.TEST_MZDB_TMP);
-                    File tempFile = new File(FileManager.TEST_MZDB_TMP);
-                    if ((tempFile != null) && (tempFile.exists())) {
+                    File tempFile = new File(MzDBUtil.TEST_MZDB_TMP);
+                    if (tempFile.exists()) {
                         FileUtility.forceDeleteFile(tempFile);
                     }
 
-                    if (settingsAndReviewDialog.getConfiguration().getConvert()) {
+                    if (ConfigurationManager.getConvertMzdbOperation()) {
 
                         //JPM.TODO : TEST with another thread
-                        File rawFile = new File(FileManager.TEST_RAW);
+                        File rawFile = new File(MzDBUtil.TEST_RAW);
 
-                        if ((rawFile != null) && (rawFile.exists())) {
-
+                        if (rawFile.exists()) {
 
                             AbstractCallback callback = new AbstractCallback() {
 
@@ -140,13 +112,15 @@ public class MZDBWizard {
                                 public void run(boolean success, long taskId) {
                                     if (success) {
                                         waitDialog.setVisible(false);
-                                        MainFrame frame = new MainFrame(new Dimension(1280, 720), new Dimension(1280, 720));
+                                        MainFrame frame = new MainFrame();
                                         frame.setVisible(true);
+                                        if (!ConfigurationManager.getFullscreen()) {
+                                            frame.setLocationRelativeTo(null);
+                                        }
+
                                     } else {
                                         waitDialog.setVisible(false);
-                                        JOptionPane.showMessageDialog(null, "Something is wrong with raw2mzDB.exe. See your system administrator...", "Converter Test Error", JOptionPane.ERROR_MESSAGE);
-                                        logger.error("Something is wrong with raw2mzDB.exe. Call your administrator!");
-                                        System.exit(1);
+                                        MZDBWizard.showErrorMsgAndExit(getTaskError());
                                     }
                                 }
 
@@ -158,7 +132,8 @@ public class MZDBWizard {
 
 
                         } else {
-                            System.exit(1);
+                            TaskError err = new TaskError("No test.raw file to validate converter.");
+                            MZDBWizard.showErrorMsgAndExit(err);
                         }
 
                     } else {
@@ -171,8 +146,11 @@ public class MZDBWizard {
                             @Override
                             public void run() {
                                 waitDialog.setVisible(false);
-                                MainFrame frame = new MainFrame(new Dimension(1280, 720), new Dimension(1280, 720));
+                                MainFrame frame = new MainFrame();
                                 frame.setVisible(true);
+                                if (!ConfigurationManager.getFullscreen()) {
+                                    frame.setLocationRelativeTo(null);
+                                }
                             }
                         });
                     }
@@ -183,6 +161,20 @@ public class MZDBWizard {
 
             }});
 
+    }
+
+    private  static void showErrorMsgAndExit(TaskError err){
+        String msg = "Something is wrong initializing mzDbWizard. See your system administrator...";
+        if(err!=null) {
+            msg += "\nError: ";
+            if (StringUtils.isNotEmpty(err.getErrorText()))
+                msg += err.getErrorText();
+            else
+                msg += err.getErrorTitle();
+        }
+        JOptionPane.showMessageDialog(null, msg, "mzDbWizard initialization error", JOptionPane.ERROR_MESSAGE);
+        logger.error(msg);
+        System.exit(1);
     }
 
 }

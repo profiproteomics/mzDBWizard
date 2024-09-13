@@ -47,7 +47,7 @@ public class UploadFileJMSTask extends AbstractJMSTask {
 
 
     public UploadFileJMSTask(AbstractJMSCallback callback, File file2Upload, Path monitorDirectoryPath, String pathLabel) {
-        super(callback, new TaskInfo("Upload File", TaskInfo.UPLOAD_TASK, false, TASK_LIST_INFO, TaskInfo.VisibilityEnum.HIDDEN));
+        super(callback, new TaskInfo("Upload File", TaskInfo.UPLOAD_TASK, false, TaskInfo.VisibilityEnum.HIDDEN));
 
         m_file2Upload = file2Upload;
         m_monitorDirectoryPath = monitorDirectoryPath;
@@ -84,7 +84,6 @@ public class UploadFileJMSTask extends AbstractJMSTask {
             //this needs checking!
             String destFolderPath = m_pathLabel + File.separator + destFileName.substring(destFileName.indexOf(m_monitorDirectoryPath.toAbsolutePath().toString()) + m_monitorDirectoryPath.toAbsolutePath().toString().length(), destFileName.lastIndexOf(FilenameUtils.getName(destFileName)));
             message.setStringProperty("dest_folder_path", destFolderPath);
-
 
             addSourceToMessage(message);
             addDescriptionToMessage(message);

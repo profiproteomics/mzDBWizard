@@ -16,57 +16,37 @@
  */
 package fr.profi.mzDBWizard.gui;
 
+import fr.profi.mgfboost.ui.command.ui.MzdbCreateMgfPanel;
+import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.gui.overview.AttributesTableModel;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTask;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTaskTypeRenderer;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel;
-import fr.profi.mzDBWizard.gui.util.ComponentTitledBorder;
-import fr.profi.mzDBWizard.gui.util.GenericTableRenderer;
-import fr.profi.mzDBWizard.processing.jms.queue.ConnectionListener;
-import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
 import fr.profi.mzDBWizard.gui.pendingtask.PendingTasksTableModel.Action;
+import fr.profi.mzDBWizard.gui.util.ComponentTitledBorder;
 import fr.profi.mzDBWizard.gui.util.DefaultIcons;
+import fr.profi.mzDBWizard.gui.util.GenericTableRenderer;
+import fr.profi.mzDBWizard.gui.util.GuiUtil;
+import fr.profi.mzDBWizard.processing.CreateMgfCommand;
 import fr.profi.mzDBWizard.processing.jms.queue.AbstractJMSCallback;
 import fr.profi.mzDBWizard.processing.jms.queue.AccessJMSManagerThread;
 import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
+import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
+import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
 import fr.profi.mzDBWizard.util.BuildInformation;
-import fr.profi.mzDBWizard.configuration.Configuration;
-import fr.profi.mzDBWizard.configuration.Configuration.PrecursorComputationMethod;
 import fr.profi.mzDBWizard.util.FileUtility;
-import fr.profi.mzDBWizard.configuration.ConfigurationManager;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -77,6 +57,8 @@ import org.apache.commons.io.FilenameUtils;
  * @author AK249877
  */
 public class SettingsAndReviewDialog extends JDialog implements ActionListener, KeyListener {
+
+    private static final Logger m_logger = LoggerFactory.getLogger(SettingsAndReviewDialog.class);
 
     public enum Step {
 
@@ -89,7 +71,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private HashMap<Step, JPanel> m_steps;
-    private JButton m_button[];
+    private JButton[] m_button;
     private Answer m_answer;
     private Step m_currentStep;
 
@@ -103,10 +85,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private JTable m_pendingTasksTable;
     private ArrayList<PendingTask> m_pendingTasks;
 
-    private Configuration m_configuration;
     private AttributesTableModel m_configurationTableModel;
-    private JTable m_configurationTable;
-
 
     private HashSet<String> m_filesIndex;
     private boolean m_hasDuplicates, m_triggerPermission;
@@ -115,11 +94,15 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     private JTextField m_monitoredDirectory;
     private JCheckBox m_recursiveCheckBox;
 
+    //SPLIT MZDB OPERATION VARIABLES
+    private JCheckBox m_splitMzdbOperationCheckbox;
+    private boolean m_doSplit;
+
     //MGF OPERATION VARIABLES
-    private JCheckBox m_mgfOperationCheckbox;
-    private boolean m_mgfOperation;
-    private JComboBox m_precursorComputationMethod;
-    private JTextField m_mzTolerance, m_intensityCutoff;
+    private JCheckBox m_generateMgfOperationCheckbox;
+    private boolean m_doGenerateMgf;
+//    private JComboBox m_precursorComputationMethodCBox;
+//    private JTextField m_mzTolerance, m_intensityCutoff;
 
     //CONVERSION OPERATION VARIABLES
     private JTextField m_converterTxtField;
@@ -130,13 +113,15 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     //UPLOAD OPERATION VARIABLES
     private JCheckBox m_uploadOperationCheckbox;
-    private boolean m_uploadOperation;
+    private boolean m_doUpload;
     private JTextField m_host;
     private JComboBox m_mountingPointComboBox;
     private JButton m_refreshMountingPointsButton;
 
     //CLEANUP OPERATION VARIABLES
-    private JCheckBox m_cleanupOperationCheckboxes[];
+    private JCheckBox[] m_cleanupOperationCheckboxes;
+
+    private CreateMgfCommand m_createMgfCommand;
 
     public SettingsAndReviewDialog() {
 
@@ -144,30 +129,40 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         BuildInformation buildInformation = new BuildInformation();
         setTitle("Welcome to " + buildInformation.getModuleName() + " (" + buildInformation.getVersion() + ")");
-
-
-        setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.WAND_HAT_ICON).getImage());
-
-        setSize(520, 580);
-        setMinimumSize(new Dimension(520, 580));
-        setMaximumSize(new Dimension(600, 800));
-
+        setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.LOGO_ICON).getImage());
         setResizable(true);
-
-        setLocationRelativeTo(null);
-
         setLayout(new BorderLayout());
 
         m_answer = Answer.NULL_ANSWER;
+        m_createMgfCommand = CreateMgfCommand.getInstance();
 
-        add(init(), BorderLayout.CENTER);
+        JPanel internalPanel =  init();
+        add(internalPanel, BorderLayout.CENTER);
         add(initButtons(), BorderLayout.SOUTH);
 
         addKeyListener(this);
 
         setFocusable(true);
 
-        setVisible(true);
+        pack();
+
+        if(ConfigurationManager.isReadOnlyCfg()){
+           setToReadOnly(internalPanel);
+        }
+    }
+
+    private void setToReadOnly(JPanel panel){
+        List<JComponent> all = GuiUtil.getAllChildrenOfClass(panel, JComponent.class);
+        for(JComponent compo : all){
+            if(compo instanceof JPanel && compo.getBorder() instanceof ComponentTitledBorder){
+                ((ComponentTitledBorder) compo.getBorder()).setEnabledComponent(false);
+            } else if ( (compo instanceof JPanel || compo instanceof JScrollPane) && compo.getBorder() instanceof CompoundBorder){
+                if( ((CompoundBorder)compo.getBorder()).getOutsideBorder() instanceof ComponentTitledBorder)
+                    ((ComponentTitledBorder) ((CompoundBorder)compo.getBorder()).getOutsideBorder()).setEnabledComponent(false);
+            }
+
+            compo.setEnabled(false);
+        }
     }
 
     @Override
@@ -188,52 +183,14 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         setVisible(false);
     }
 
-    public boolean getProcessExisting() {
-        return m_processExisting;
-    }
 
     private void startAction() {
         if (validateJComponents() && ensureUniqueness() && (m_currentStep == Step.REVIEW_STEP)) {
             m_answer = Answer.OK;
 
-            ConfigurationManager.setMonitorPath(m_monitoredDirectory.getText());
-            ConfigurationManager.setRecursiveWatching(m_recursiveCheckBox.isSelected());
+            updateConfiguration();
 
-            m_configuration.setProcessPending(m_processPendingCheckBox.isSelected()); //IMPORTANT!
-            ConfigurationManager.setProcessPending(m_processPendingCheckBox.isSelected());
-
-            ConfigurationManager.setConvertOperation(m_convertOperationCheckbox.isSelected());
-            if (m_convertOperationCheckbox.isSelected()) {
-                ConfigurationManager.setConverterPath(m_converterTxtField.getText());
-                ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
-            }
-
-            ConfigurationManager.setUploadOperation(m_uploadOperationCheckbox.isSelected());
-            if (m_uploadOperationCheckbox.isSelected()) {
-                JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText());
-                ConfigurationManager.setJmsServerHost(m_host.getText());
-                ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
-            }
-
-            ConfigurationManager.setMgfOperation(m_mgfOperationCheckbox.isSelected());
-            if (m_mgfOperationCheckbox.isSelected()) {
-                ConfigurationManager.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
-                ConfigurationManager.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
-                ConfigurationManager.setPrecursorComputationMethod(m_precursorComputationMethod.getSelectedItem().toString());
-            }
-
-            ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
-            ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
-
-            ConfigurationManager.setMgfOperation(m_mgfOperationCheckbox.isSelected());
-
-            if (m_uploadOperation) {
-                JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText());
-                ConfigurationManager.setJmsServerHost(m_host.getText());
-                ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
-            }
-
-            ConfigurationManager.saveProperties();
+            ConfigurationManager.saveProperties(m_createMgfCommand);
             setVisible(false);
         }
     }
@@ -271,7 +228,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             m_filesIndex.clear();
 
             ArrayList<File> recoveredFiles = new ArrayList<>();
-            FileUtility.listFiles(monitoredDirectory.getAbsolutePath(), recoveredFiles, true);
+            FileUtility.listFiles(monitoredDirectory.getAbsolutePath(), recoveredFiles, m_recursiveCheckBox.isSelected());
 
             for (int i = 0; i < recoveredFiles.size(); i++) {
 
@@ -285,14 +242,14 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
                     m_filesIndex.add(filename);
                 }
 
-                if (f.getAbsolutePath().toLowerCase().endsWith(".raw") || f.getAbsolutePath().toLowerCase().endsWith(".wiff") || f.getAbsolutePath().toLowerCase().endsWith(".d")) {
+                if (f.getAbsolutePath().toLowerCase().endsWith(FileProcessingExec.RAW_SUFFIX) || f.getAbsolutePath().toLowerCase().endsWith(FileProcessingExec.WIFF_SUFFIX) /*|| f.getAbsolutePath().toLowerCase().endsWith(".d")*/) {
                     if (m_doConvert) {
                         m_pendingTasks.add(new PendingTask(recoveredFiles.get(i).getAbsolutePath(), Action.CONVERSION));
                     }
-                } else if (f.getAbsolutePath().toLowerCase().endsWith(".mzdb")) {
-                    if (m_uploadOperation) {
+                } else if (f.getAbsolutePath().toLowerCase().endsWith(FileProcessingExec.MZDB_SUFFIX)) {
+                    if (m_doUpload) {
                         m_pendingTasks.add(new PendingTask(recoveredFiles.get(i).getAbsolutePath(), Action.UPLOAD));
-                    } else if  (m_mgfOperation) {
+                    } else if  (m_doGenerateMgf) {
                         m_pendingTasks.add(new PendingTask(recoveredFiles.get(i).getAbsolutePath(), Action.CONVERSION));
                     }
 
@@ -305,17 +262,13 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         updateConfiguration();
 
-        m_configurationTableModel.update(m_configuration.getConfigurationModelData());
+        m_configurationTableModel.update(ConfigurationManager.getConfigurationModelData());
 
         updateButtons();
 
         m_triggerPermission = true;
 
-
-        setLocationRelativeTo(null);
-
         validate();
-        pack();
     }
 
     private void previousAction() {
@@ -328,13 +281,6 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         m_mainPanel.revalidate();
         m_mainPanel.repaint();
-
-        setSize(480, 640);
-        setMinimumSize(new Dimension(480, 640));
-        setMaximumSize(new Dimension(600, 800));
-
-        pack();
-        repaint();
 
         updateButtons();
     }
@@ -355,8 +301,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         System.out.println(path);
 
         //panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-        String iconsName[] = {DefaultIcons.PREVIOUS_ICON, DefaultIcons.NEXT_ICON, DefaultIcons.TICK_ICON, DefaultIcons.CROSS_ICON};
-        String headings[] = {"Previous", "Next", "Start", "Cancel"};
+        String[] iconsName = {DefaultIcons.PREVIOUS_ICON, DefaultIcons.NEXT_ICON, DefaultIcons.TICK_ICON, DefaultIcons.CROSS_ICON};
+        String[] headings = {"Previous", "Next", "Start", "Cancel"};
         m_button = new JButton[headings.length];
 
         for (int i = 0; i < m_button.length; i++) {
@@ -398,8 +344,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         clearMountingPoints();
 
-        for (int i = 0; i < ConfigurationManager.getPathLabels().size(); i++) {
-            m_mountingPointComboBox.addItem(ConfigurationManager.getPathLabels().get(i));
+        for (int i = 0; i < ConfigurationManager.getMountingPointPathLabels().size(); i++) {
+            m_mountingPointComboBox.addItem(ConfigurationManager.getMountingPointPathLabels().get(i));
         }
 
         if (m_lastMountingPoint != null && m_mountingPointComboBox.getSelectedIndex() > 0) {
@@ -508,21 +454,16 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             }
         });
 
-        m_doConvert = ConfigurationManager.getConvertOperation();
+        m_doConvert = ConfigurationManager.getConvertMzdbOperation();
         m_convertOperationCheckbox = new JCheckBox("Convert");
         m_convertOperationCheckbox.setSelected(m_doConvert);
         m_convertOperationCheckbox.setFocusable(false);
-        m_convertOperationCheckbox.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                m_doConvert = m_convertOperationCheckbox.isSelected();
-                updateConversionOptions();
-            }
-
+        m_convertOperationCheckbox.addItemListener(ie -> {
+            m_doConvert = m_convertOperationCheckbox.isSelected();
+            enableConversionOptions();
         });
 
-        updateConversionOptions();
+        enableConversionOptions();
 
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.CENTER;
@@ -563,125 +504,39 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         return convertOperationPanel;
     }
 
-    private void updateConversionOptions() {
+    private void enableConversionOptions() {
         m_converterTxtField.setEnabled(m_doConvert);
         m_converterButton.setEnabled(m_doConvert);
     }
 
-    private JPanel initMgfOperationPanel() {
+    private JPanel initGenerateMgfOperationPanel() {
         JPanel mgfOperationPanel = new JPanel();
         mgfOperationPanel.setLayout(new GridBagLayout());
+        m_doGenerateMgf = ConfigurationManager.getProcessGenerateMgf();
+        m_generateMgfOperationCheckbox = new JCheckBox("Generate mgf");
+        m_generateMgfOperationCheckbox.setSelected(m_doGenerateMgf);
+        m_generateMgfOperationCheckbox.setFocusable(false);
+        m_generateMgfOperationCheckbox.addItemListener(ie -> {
+            m_doGenerateMgf = m_generateMgfOperationCheckbox.isSelected();
+            enableMgfOptions();
+        });
+
         GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.CENTER;
         c.fill = GridBagConstraints.BOTH;
         c.insets = new java.awt.Insets(5, 5, 5, 5);
-
-        m_mgfOperation = ConfigurationManager.getMgfOperation();
-        m_mgfOperationCheckbox = new JCheckBox("Export mgf");
-        m_mgfOperationCheckbox.setSelected(m_mgfOperation);
-        m_mgfOperationCheckbox.setFocusable(false);
-        m_mgfOperationCheckbox.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                m_mgfOperation = m_mgfOperationCheckbox.isSelected();
-                updateMgfOptions();
-            }
-
-        });
-
-        JLabel mzToleranceLabel = new JLabel("m/z tolerance (ppm) : ");
-        mzToleranceLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        m_mzTolerance = new JTextField(String.valueOf(ConfigurationManager.getMzTolerance()));
-        m_mzTolerance.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                m_mgfOperationCheckbox.setSelected(true);
-                repaint();
-                m_mzTolerance.requestFocus();
-            }
-        });
-        m_mzTolerance.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        m_mzTolerance.setFocusable(true);
-        m_mzTolerance.addKeyListener(this);
-
-        JLabel intensityCutoffLabel = new JLabel("Intensity cutoff : ");
-        intensityCutoffLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        m_intensityCutoff = new JTextField(String.valueOf(ConfigurationManager.getIntensityCutoff()));
-        m_intensityCutoff.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                m_mgfOperationCheckbox.setSelected(true);
-                repaint();
-                m_intensityCutoff.requestFocus();
-            }
-        });
-        m_intensityCutoff.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        m_intensityCutoff.setFocusable(true);
-        m_intensityCutoff.addKeyListener(this);
-
-        JLabel precursorMethodLabel = new JLabel("Precursor m/z computation method : ");
-        precursorMethodLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-
-        m_precursorComputationMethod = new JComboBox();
-
-        m_precursorComputationMethod.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (!m_mgfOperation) {
-                    m_mgfOperationCheckbox.setSelected(true);
-                    repaint();
-                    m_precursorComputationMethod.showPopup();
-                }
-            }
-        });
-
-        for (PrecursorComputationMethod method : PrecursorComputationMethod.values()) {
-            m_precursorComputationMethod.addItem(method.toString());
-        }
-
-        m_precursorComputationMethod.setSelectedItem(ConfigurationManager.getPrecursorComputationMethod().toString());
-
-        updateMgfOptions();
-
-        c.gridy = 0;
-
-        c.weightx = 0;
-        c.gridx = 0;
-        mgfOperationPanel.add(mzToleranceLabel, c);
         c.weightx = 1;
-        c.gridx = 1;
-        mgfOperationPanel.add(m_mzTolerance, c);
+        mgfOperationPanel.add(m_createMgfCommand.getConfigurationPanel(), c);
 
-        c.gridy++;
-
-        c.weightx = 0;
-        c.gridx = 0;
-        mgfOperationPanel.add(intensityCutoffLabel, c);
-        c.weightx = 1;
-        c.gridx = 1;
-        mgfOperationPanel.add(m_intensityCutoff, c);
-
-        c.gridy++;
-
-        c.weightx = 0;
-        c.gridx = 0;
-        mgfOperationPanel.add(precursorMethodLabel, c);
-        c.weightx = 1;
-        c.gridx = 1;
-        mgfOperationPanel.add(m_precursorComputationMethod, c);
-
-        mgfOperationPanel.setBorder(new ComponentTitledBorder(m_mgfOperationCheckbox, mgfOperationPanel, BorderFactory.createEtchedBorder()));
-
+        mgfOperationPanel.setBorder(new ComponentTitledBorder(m_generateMgfOperationCheckbox, mgfOperationPanel, BorderFactory.createEtchedBorder()));
+        enableMgfOptions();
         return mgfOperationPanel;
     }
 
-    private void updateMgfOptions() {
-        m_mzTolerance.setEnabled(m_mgfOperation);
-        m_intensityCutoff.setEnabled(m_mgfOperation);
-        m_precursorComputationMethod.setEnabled(m_mgfOperation);
+    private void enableMgfOptions() {
+        GuiUtil.enableAllChildrenOfClass(m_createMgfCommand.getConfigurationPanel(), JComponent.class, m_doGenerateMgf);
+        if(m_doGenerateMgf)
+            ((MzdbCreateMgfPanel)m_createMgfCommand.getConfigurationPanel()).updateComponents();
     }
 
     private JPanel initUploadOperationPanel() {
@@ -692,30 +547,25 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         c.fill = GridBagConstraints.BOTH;
         c.insets = new java.awt.Insets(5, 5, 5, 5);
 
-        m_uploadOperation = ConfigurationManager.getUploadOperation();
+        m_doUpload = ConfigurationManager.getProcessUpload();
         m_uploadOperationCheckbox = new JCheckBox("Upload");
-        m_uploadOperationCheckbox.setSelected(m_uploadOperation);
+        m_uploadOperationCheckbox.setSelected(m_doUpload);
         m_uploadOperationCheckbox.setFocusable(false);
 
-        m_uploadOperationCheckbox.addItemListener(new ItemListener() {
+        m_uploadOperationCheckbox.addItemListener(ie -> {
 
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
+            m_doUpload = m_uploadOperationCheckbox.isSelected();
+            enableUploadOptions();
+            if (m_doUpload) {
+                m_uploadOperationCheckbox.setFocusPainted(false);
+                if (m_host != null) {
+                    m_host.requestFocus();
 
-                m_uploadOperation = m_uploadOperationCheckbox.isSelected();
-                updateUploadOptions();
-                if (m_uploadOperation) {
-                    m_uploadOperationCheckbox.setFocusPainted(false);
-                    if (m_host != null) {
-                        m_host.requestFocus();
-
-                        if (m_uploadOperation && !m_host.getText().equalsIgnoreCase(ConfigurationManager.HOST_TO_SELECT)) {
-                            requestMountingPoints();
-                        }
+                    if (m_doUpload && !m_host.getText().equalsIgnoreCase(ConfigurationManager.HOST_TO_SELECT)) {
+                        requestMountingPoints();
                     }
                 }
             }
-
         });
 
         JLabel hostLabel = new JLabel("Host : ");
@@ -726,6 +576,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             @Override
             public void mouseClicked(MouseEvent e) {
                 m_uploadOperationCheckbox.setSelected(true);
+                m_doUpload = true;
                 repaint();
             }
         });
@@ -739,12 +590,10 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
             @Override
             public void keyPressed(KeyEvent ke) {
-                ;
             }
 
             @Override
             public void keyReleased(KeyEvent ke) {
-                ;
             }
 
         });
@@ -757,6 +606,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
             @Override
             public void mouseClicked(MouseEvent e) {
                 m_uploadOperationCheckbox.setSelected(true);
+                m_doUpload=true;
                 repaint();
             }
         });
@@ -779,9 +629,9 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         });
 
-        updateUploadOptions();
+        enableUploadOptions();
 
-        if (m_uploadOperation && !m_host.getText().equalsIgnoreCase(ConfigurationManager.HOST_TO_SELECT)) {
+        if (m_doUpload && !m_host.getText().equalsIgnoreCase(ConfigurationManager.HOST_TO_SELECT)) {
             requestMountingPoints();
         }
 
@@ -825,9 +675,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_refreshMountingPointsButton.setIcon(DefaultIcons.getSingleton().getIcon(DefaultIcons.HOURGLASS));
 
         JMSConnectionManager.getJMSConnectionManager().closeConnection(); //In case already connected !
-
         JMSConnectionManager.getJMSConnectionManager().setJMSServerHost(m_host.getText().trim());
-
 
         AbstractJMSCallback callback = new AbstractJMSCallback() {
 
@@ -856,11 +704,50 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     }
 
-    private void updateUploadOptions() {
-        m_host.setEnabled(m_uploadOperation);
-        m_mountingPointComboBox.setEnabled(m_uploadOperation);
+    private void enableUploadOptions() {
+        m_host.setEnabled(m_doUpload);
+        m_mountingPointComboBox.setEnabled(m_doUpload);
 
         repaint();
+    }
+
+    private JPanel initSplitMzdbOperationPanel() {
+        JPanel splitMzdbPanel = new JPanel();
+
+        splitMzdbPanel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.CENTER;
+        c.fill = GridBagConstraints.BOTH;
+        c.insets = new java.awt.Insets(5, 5, 5, 5);
+
+        m_doSplit = ConfigurationManager.getProcessSplitMzdb();
+        m_splitMzdbOperationCheckbox = new JCheckBox("Split Exploris mzdb");
+        m_splitMzdbOperationCheckbox.setSelected(m_doSplit);
+        m_splitMzdbOperationCheckbox.setFocusable(false);
+        m_splitMzdbOperationCheckbox.addItemListener(ie -> {
+            m_doSplit = m_splitMzdbOperationCheckbox.isSelected();
+        });
+
+        c.gridy = 0;
+        c.weightx = 0;
+        c.gridx = 0;
+        splitMzdbPanel.add(m_splitMzdbOperationCheckbox, c);
+
+        JLabel splitExtensionLb = new JLabel("Splitted files extension: ");
+        splitExtensionLb.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JTextField splitExtension = new JTextField(FileProcessingExec.SPLIT_SUFFIX);
+        splitExtension.setEditable(false);
+        c.gridy++;
+        splitMzdbPanel.add(splitExtensionLb, c);
+        c.weightx = 1;
+        c.gridx++;
+        splitMzdbPanel.add(splitExtension, c);
+
+
+        splitMzdbPanel.setBorder(new ComponentTitledBorder(m_splitMzdbOperationCheckbox, splitMzdbPanel, BorderFactory.createEtchedBorder()));
+
+        return splitMzdbPanel;
     }
 
     private JPanel initCleanupOperationPanel() {
@@ -919,7 +806,9 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         c.gridy++;
         configPanel.add(initConvertOperationPanel(), c);
         c.gridy++;
-        configPanel.add(initMgfOperationPanel(), c);
+        configPanel.add(initSplitMzdbOperationPanel(), c);
+        c.gridy++;
+        configPanel.add(initGenerateMgfOperationPanel(), c);
         c.gridy++;
         configPanel.add(initUploadOperationPanel(), c);
         c.gridy++;
@@ -932,34 +821,27 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private void updateConfiguration() {
-        if (m_configuration == null) {
-            m_configuration = new Configuration();
-        }
 
-        m_configuration.setMonitoredUrl(m_monitoredDirectory.getText());
-        m_configuration.setRecursiveWatching(m_recursiveCheckBox.isSelected());
+        ConfigurationManager.setMonitorPath(m_monitoredDirectory.getText());
+        ConfigurationManager.setRecursiveWatching(m_recursiveCheckBox.isSelected());
 
-        m_configuration.setConvert(m_convertOperationCheckbox.isSelected());
-        m_configuration.setConverterUrl(m_converterTxtField.getText());
-        m_configuration.setConverterOptions(m_converterOptionTxtField.getText());
+        ConfigurationManager.setConvertMzdbOperation(m_doConvert);
+        ConfigurationManager.setConverterPath(m_converterTxtField.getText());
+        ConfigurationManager.setConverterOptions(m_converterOptionTxtField.getText());
 
-        m_configuration.setExportMgf(m_mgfOperationCheckbox.isSelected());
-        m_configuration.setMzTolerance(Float.parseFloat(m_mzTolerance.getText()));
-        m_configuration.setIntensityCutoff(Float.parseFloat(m_intensityCutoff.getText()));
+        ConfigurationManager.setProcessSplitMzdb(m_doSplit);
 
-        for (PrecursorComputationMethod method : PrecursorComputationMethod.values()) {
-            if (method.toString().equalsIgnoreCase(m_precursorComputationMethod.getSelectedItem().toString())) {
-                m_configuration.setPrecursorComputationMethod(method);
-            }
-        }
+        ConfigurationManager.setProcessGenerateMgf(m_doGenerateMgf);
+        ConfigurationManager.setProcessUpload(m_doUpload);
+        ConfigurationManager.setJmsServerHost(m_host.getText());
+        ConfigurationManager.setMountingPointLabel(m_mountingPointComboBox.getSelectedItem().toString());
 
-        m_configuration.setUploadMzdb(m_uploadOperationCheckbox.isSelected());
-        m_configuration.setHost(m_host.getText());
-        m_configuration.setMountingPoint(m_mountingPointComboBox.getSelectedItem().toString());
-
-        m_configuration.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
-        m_configuration.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
+        ConfigurationManager.setDeleteRaw(m_cleanupOperationCheckboxes[0].isSelected());
+        ConfigurationManager.setDeleteMzdb(m_cleanupOperationCheckboxes[1].isSelected());
+        if(m_processPendingCheckBox != null)
+            ConfigurationManager.setProcessPending(m_processPendingCheckBox.isSelected());
     }
+
 
     private JPanel initReviewStep() {
         JPanel reviewStepPanel = new JPanel();
@@ -971,8 +853,8 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         updateConfiguration();
 
-        m_configurationTableModel = new AttributesTableModel(m_configuration.getConfigurationModelData());
-        m_configurationTable = new JTable(m_configurationTableModel);
+        m_configurationTableModel = new AttributesTableModel(ConfigurationManager.getConfigurationModelData());
+        JTable m_configurationTable = new JTable(m_configurationTableModel);
         m_configurationTable.setTableHeader(null);
         m_configurationTable.setRowHeight(20);
         m_configurationTable.setRowSelectionAllowed(true);
@@ -1003,7 +885,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         pendingScrollPane.setPreferredSize(new Dimension(m_pendingTasksTable.getWidth(), 270));
         
         m_processPendingCheckBox = new JCheckBox("Process existing files");
-
+        m_processPendingCheckBox.setSelected(ConfigurationManager.getProcessPending());
         m_processPendingCheckBox.addItemListener(new ItemListener() {
 
             @Override
@@ -1013,7 +895,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
                 m_pendingTasksTable.setEnabled(m_processExisting);
                 repaint();
 
-                if (m_hasDuplicates && m_triggerPermission && m_processExisting && m_uploadOperation) {
+                if (m_hasDuplicates && m_triggerPermission && m_processExisting && m_doUpload) {
                     if (JOptionPane.showConfirmDialog((Component) null, "Are you sure you want to proceed?", "Raw and Mzdb versions of the same file(s)!", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
                         m_triggerPermission = false;
                         m_processPendingCheckBox.setSelected(false);
@@ -1023,6 +905,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
                         m_processPendingCheckBox.setSelected(true);
                         m_triggerPermission = true;
                     }
+                    m_processExisting = m_processPendingCheckBox.isSelected();
                 }
 
             }
@@ -1047,6 +930,9 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         reviewStepPanel.add(pendingScrollPane, c);
 
+        if(ConfigurationManager.isReadOnlyCfg()){
+            setToReadOnly(reviewStepPanel);
+        }
         return reviewStepPanel;
     }
 
@@ -1057,7 +943,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         m_filesIndex = new HashSet<>();
         m_hasDuplicates = false;
 
-        m_steps = new HashMap<Step, JPanel>();
+        m_steps = new HashMap<>();
         m_currentStep = Step.CONFIG_STEP;
 
         m_steps.put(Step.CONFIG_STEP, initConfigStep());
@@ -1072,6 +958,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
         if (exe != null) {
             m_converterTxtField.setText(exe.getAbsolutePath());
             m_convertOperationCheckbox.setSelected(true);
+            m_doConvert=true;
             repaint();
         }
     }
@@ -1122,33 +1009,14 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     }
 
-    public Configuration getConfiguration() {
-        return m_configuration;
-    }
 
     public Answer getAnswer() {
         return m_answer;
     }
 
-    public String getDirectoryURL() {
-        return m_monitoredDirectory.getText();
-    }
-
-    public String getConverterURL() {
-        return m_converterTxtField.getText();
-    }
-
-    public String getPathLabel() {
-        return m_mountingPointComboBox.getSelectedItem().toString();
-    }
-
-    public boolean isUploading() {
-        return m_uploadOperation;
-    }
 
     @Override
     public void keyTyped(KeyEvent ke) {
-        ;
     }
 
     @Override
@@ -1162,13 +1030,18 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
     @Override
     public void keyReleased(KeyEvent ke) {
-        ;
     }
 
     private boolean validateMgfConfiguration() {
         try {
-            Double.parseDouble(m_mzTolerance.getText());
-            Double.parseDouble(m_intensityCutoff.getText());
+            if(!m_doGenerateMgf)
+                return true;
+            if(! m_createMgfCommand.buildCommand()) {
+                m_createMgfCommand.showErrorMessage();
+                return false;
+            }
+//            Double.parseDouble(m_mzTolerance.getText());
+//            Double.parseDouble(m_intensityCutoff.getText());
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Check m/z tolerance and intensity cutoff.", "Invalid values", JOptionPane.ERROR_MESSAGE);
             return false;
@@ -1177,7 +1050,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private boolean validateUploadConfiguration() {
-        if (m_uploadOperationCheckbox.isSelected() && m_mountingPointComboBox.getSelectedIndex() == 0) {
+        if (m_doUpload && m_mountingPointComboBox.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(this, "Check your mounting point.", "Invalid values", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -1185,10 +1058,10 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
     }
 
     private boolean validateOperations() {
-        if (!(m_doConvert || m_mgfOperation || m_uploadOperation)) {
+        if (!(m_doConvert || m_doGenerateMgf || m_doUpload)) {
             JOptionPane.showMessageDialog(this, "Select at least one operation.", "Invalid configuration", JOptionPane.ERROR_MESSAGE);
         }
-        return m_doConvert || m_mgfOperation || m_uploadOperation;
+        return m_doConvert || m_doGenerateMgf || m_doUpload;
     }
 
 }

@@ -27,7 +27,8 @@ public class WorkerPool {
     public static final int CONVERTER_THREAD = 0;
     public static final int UPLOAD_THREAD = 1;
     public static final int DELETE_THREAD = 2;
-    private static final int NB_TYPES_THREAD = 3;
+    public static final int GENERATE_THREAD = 3;
+    private static final int NB_TYPES_THREAD = 4;
 
     WorkerThread[] m_threads;
 

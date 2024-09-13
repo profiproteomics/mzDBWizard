@@ -20,18 +20,19 @@ import fr.profi.mzDBWizard.configuration.ConfigurationManager;
 import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.threading.task.DeleteFileTask;
 import fr.profi.mzDBWizard.processing.threading.queue.TaskManagerThread;
+import fr.profi.mzDBWizard.processing.threading.task.UploadMzdbTask;
 
 import java.io.File;
 
 /**
  *
- * Callback called when the conversion to mzdb task has finished
+ * Callback called when the conversion to mgf task has finished
  *
  * @author JPM235353
  */
-public class ConvertRawFile2MzdbCallback extends AbstractCallback {
+public class GenerateMgfFromMzdbCallback extends AbstractCallback {
 
-    private File m_rawFile = null;
+    private File m_mzdbFile = null;
 
     @Override
     public boolean mustBeCalledInAWT() {
@@ -40,20 +41,33 @@ public class ConvertRawFile2MzdbCallback extends AbstractCallback {
 
     @Override
     public void run(boolean success, long taskId) {
-        if (!success) {
+        if (!success ||m_mzdbFile == null) {
             return;
         }
 
-        m_logger.debug( " --- Finish raw2mzdb. Del raw ? "+ConfigurationManager.getDeleteRaw());
-        // if cleanup is asked for raw file
-        if (ConfigurationManager.getDeleteRaw()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(null, m_rawFile));
+        m_logger.info( " - Finish  mgf generation from "+m_mzdbFile.getName()+ "... getUploadOperation  "+ConfigurationManager.getProcessUpload()+" getDeleteMzdb "+ ConfigurationManager.getDeleteMzdb());
+
+
+
+        // if Upload is asked for mzdb...
+        if (ConfigurationManager.getProcessUpload()) {
+
+            UploadMzdbCallback callback = new UploadMzdbCallback();
+            callback.setMzdbFile(m_mzdbFile);
+            TaskManagerThread.getTaskManagerThread().addTask(new UploadMzdbTask(callback, m_mzdbFile, new File(ConfigurationManager.getMonitorPath()), ConfigurationManager.getMountingPointLabel()));
+
+            return;
         }
 
+        // if cleanup is asked for mzdb file
+        if (ConfigurationManager.getDeleteMzdb()) {
+            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(null, m_mzdbFile));
+            return;
+        }
 
     }
 
-    public void setRawFile(File rawFile) {
-        m_rawFile = rawFile;
+    public void setMzdbFile(File mzdbFile) {
+        m_mzdbFile = mzdbFile;
     }
 }

@@ -33,6 +33,7 @@ import javax.swing.event.PopupMenuListener;
 
 import fr.profi.mzDBWizard.processing.info.TaskInfo;
 import fr.profi.mzDBWizard.processing.info.TaskInfoManager;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -50,11 +51,10 @@ public class TaskManagerPanel extends JPanel implements ActionListener {
     private JMenuItem logsItem, clearItem, clearAllItem;
     private JButton logsButton, clearButton;
 
-    private final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass().toString());
+    private final Logger logger = LoggerFactory.getLogger(getClass().toString());
 
     public TaskManagerPanel() {
 
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         setLayout(new BorderLayout());
         add(initTasksPanel(), BorderLayout.CENTER);

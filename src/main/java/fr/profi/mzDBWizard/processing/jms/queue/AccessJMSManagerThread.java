@@ -25,7 +25,7 @@ import java.util.LinkedList;
 
 /**
  *
- * Management of the task which must be executed in the JMS queue
+ * Management of the tasks which must be executed in the JMS queue
  *
  * @author VD225637
  */
@@ -84,7 +84,7 @@ public class AccessJMSManagerThread extends Thread {
             }
 
 
-        } catch (InterruptedException | JMSException t) {
+        } catch (InterruptedException t) {
             LoggerFactory.getLogger("mzDB-Task").debug("Unexpected exception in main loop of AccessServiceThread", t);
             m_instance = null; // reset thread
         }
@@ -98,10 +98,8 @@ public class AccessJMSManagerThread extends Thread {
                 m_connection = JMSConnectionManager.getJMSConnectionManager().getJMSConnection(); // JMSConnection.getInstance(ConfigurationManager.getJmsServerHost(), ConfigurationManager.getJmsServerPort()).getConnection();  //
                 m_connection.start(); // Explicitely start connection to begin Consumer reception
                 m_session = m_connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-            } catch (JMSException je) {
+            } catch (Exception je) {
                 LoggerFactory.getLogger("mzDB-Task").error("Unexpected exception when initializing JMS Connection", je);
-            } catch (Exception e) {
-                LoggerFactory.getLogger("mzDB-Task").error("Unexpected exception when initializing JMS Connection", e);
             }
         }
     }
@@ -113,7 +111,6 @@ public class AccessJMSManagerThread extends Thread {
      */
     public final void addTask(AbstractJMSTask task) {
 
-        // TaskInfoManager.getTaskInfoManager().add(task.getTaskInfo()); //JPM.TODO
         // task is queued
         synchronized (this) {
             m_taskList.add(task);

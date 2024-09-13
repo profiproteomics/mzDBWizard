@@ -40,7 +40,7 @@ public class TaskManagerThread extends Thread {
     private LinkedList<OldUpload> m_oldUploadList = new LinkedList<>();
 
 
-    private WorkerPool m_workerPool = null;
+    private WorkerPool m_workerPool;
 
     private TaskManagerThread() {
         super("TaskManagerThread"); // useful for debugging

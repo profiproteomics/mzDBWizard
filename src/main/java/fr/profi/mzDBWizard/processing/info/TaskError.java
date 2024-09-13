@@ -53,10 +53,6 @@ public class TaskError {
         return m_errorText;
     }
 
-    public void setErrorText(String errorText) {
-        m_errorText = errorText;
-    }
-
 
     @Override
     public String toString() {

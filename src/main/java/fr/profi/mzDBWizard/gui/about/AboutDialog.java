@@ -43,8 +43,6 @@ import javax.swing.text.StyleConstants;
  */
 public class AboutDialog extends JDialog implements ActionListener, KeyListener {
 
-    private JButton m_okButton;
-
     private static AboutDialog m_instance;
 
     public static AboutDialog getInstance() {
@@ -81,7 +79,7 @@ public class AboutDialog extends JDialog implements ActionListener, KeyListener 
         
         String title = buildInformation.getModuleName() + " ("+buildInformation.getVersion()+")";
         
-        String body = buildInformation.getModuleName()+" is developed in the context of ProFi (French Proteomics National Infrastructure) by BIG (Grenoble): EDyP Team, BGE Laboratory (U1038 CEA/INSERM/UJF)";
+        String body = buildInformation.getModuleName()+" is developed in the context of ProFi (French Proteomics National Infrastructure) by IRIG (Grenoble): EDyP Team, BGE Laboratory (U1038 CEA/INSERM/UJF)";
 
         JLabel titleLabel = new JLabel(title, JLabel.CENTER);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 20));
@@ -116,7 +114,7 @@ public class AboutDialog extends JDialog implements ActionListener, KeyListener 
         panel.setLayout(new FlowLayout(FlowLayout.CENTER));
         panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
-        m_okButton = new JButton("OK", DefaultIcons.getSingleton().getIcon(DefaultIcons.TICK_ICON));
+        JButton m_okButton = new JButton("OK", DefaultIcons.getSingleton().getIcon(DefaultIcons.TICK_ICON));
         m_okButton.addActionListener(this);
         m_okButton.setActionCommand("OK");
 
@@ -127,7 +125,7 @@ public class AboutDialog extends JDialog implements ActionListener, KeyListener 
 
     @Override
     public void keyTyped(KeyEvent ke) {
-        ;
+
     }
 
     @Override
@@ -141,7 +139,7 @@ public class AboutDialog extends JDialog implements ActionListener, KeyListener 
 
     @Override
     public void keyReleased(KeyEvent ke) {
-        ;
+
     }
 
 }

@@ -37,7 +37,6 @@ public class WatcherPoolMonitor implements Runnable {
     private final ThreadPoolExecutor m_executor;
     private final ArrayList<Long> m_dispatchTimes;
     private final org.slf4j.Logger m_logger = LoggerFactory.getLogger(getClass().toString());
-    private static DirectoryWatcher m_directoryWatcher;
 
     public WatcherPoolMonitor(File monitoredDirectory, ThreadPoolExecutor executor, int delayInSeconds) {
 
@@ -69,7 +68,7 @@ public class WatcherPoolMonitor implements Runnable {
 
                 m_logger.debug("Dispatching a watcher service for directory " + m_monitoredDirectory.getAbsolutePath());
                 try {
-                    m_directoryWatcher = new DirectoryWatcher();
+                    DirectoryWatcher m_directoryWatcher = new DirectoryWatcher();
                     m_executor.submit(m_directoryWatcher);
                     m_dispatchTimes.add(System.currentTimeMillis());
                 } catch (IOException ex) {
@@ -92,10 +91,5 @@ public class WatcherPoolMonitor implements Runnable {
         m_run = false;
     }
 
-
-    public static DirectoryWatcher getDirectoryWatcher() {
-        //can return null
-        return m_directoryWatcher;
-    }
 
 }
