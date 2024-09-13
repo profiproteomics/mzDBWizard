@@ -20,7 +20,7 @@ public class BuildInformation implements IVersion {
 
     @Override
     public String getVersion() {
-        return "1.1.0-SNAPSHOT";
+        return "1.1.0";
     }
     
 }
