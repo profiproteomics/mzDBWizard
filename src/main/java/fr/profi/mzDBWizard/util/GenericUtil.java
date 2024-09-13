@@ -16,6 +16,7 @@
  */
 package fr.profi.mzDBWizard.util;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -24,7 +25,8 @@ import org.slf4j.LoggerFactory;
  */
 public class GenericUtil {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger("GenericSystemUtils");
+
+    private static final Logger logger = LoggerFactory.getLogger("GenericSystemUtils");
 
     public static String getSystemArchitecture() {
         String arch = System.getenv("PROCESSOR_ARCHITECTURE");

@@ -25,6 +25,8 @@ import fr.profi.mzDBWizard.processing.threading.AbstractCallback;
 import fr.profi.mzDBWizard.processing.jms.task.UploadFileJMSTask;
 import fr.profi.mzDBWizard.processing.threading.queue.AbstractTask;
 import fr.profi.mzDBWizard.processing.threading.queue.WorkerPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -36,24 +38,15 @@ import java.util.ArrayList;
  *
  * @author JPM235353
  */
-public class UploadMzdbTask extends AbstractTask {
+public class UploadMzdbTask extends AbstractFileTask {
 
-    private File m_file;
     private Path m_directoryPath;
     private String m_pathLabel;
 
-    private boolean m_uploadResult = false;
-
-    public UploadMzdbTask(AbstractCallback callback, File f, Path directoryPath, String pathLabel) {
-        super(callback, new TaskInfo("Updload : "+f.getName(), TaskInfo.UPLOAD_TASK,true, null, TaskInfo.VisibilityEnum.VISIBLE));
-
-        m_file = f;
-        m_directoryPath = directoryPath;
+    public UploadMzdbTask(AbstractCallback callback, File f, File directory, String pathLabel) {
+        super(callback, new TaskInfo("Updload : "+f.getName(), TaskInfo.UPLOAD_TASK,true,  TaskInfo.VisibilityEnum.VISIBLE), f);
+        m_directoryPath = directory.toPath();
         m_pathLabel = pathLabel;
-    }
-
-    public String getUniqueKey() {
-        return m_file.getName().toLowerCase();
     }
 
     @Override
@@ -62,55 +55,17 @@ public class UploadMzdbTask extends AbstractTask {
     }
 
     @Override
-    public boolean precheck() {
-
-        // check that file exists
-        if (! m_file.exists()) {
-            m_taskError = new TaskError("File "+ m_file.getAbsolutePath()+" does not exist.");
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean runTask() {
-
-        try {
-            return runTaskImplementation();
-        } catch (Exception e) {
-            m_taskError = new TaskError(e);
-            return false;
-        }
-    }
-    private boolean runTaskImplementation() {
-        if (!precheck()) {
-            return false;
-        }
-
-        // Create task for JMS and waits for its end
-
-        AbstractJMSCallback callback = new AbstractJMSCallback() {
-
-            @Override
-            public boolean mustBeCalledInAWT() {
-                return true;
-            }
-
-            @Override
-            public void run(boolean success) {
-                // nothing to do for the moment
-
-            }
-        };
+    protected boolean runTaskImplementation() {
+        logger.info("  -->  Upload file "+getFile().getName());
 
 
-        UploadFileJMSTask task = new UploadFileJMSTask(callback, m_file, m_directoryPath, m_pathLabel);
+        UploadFileJMSTask task = new UploadFileJMSTask(null, getFile(), m_directoryPath, m_pathLabel);
         Object mutex = task.getMutex();
         AccessJMSManagerThread.getAccessJMSManagerThread().addTask(task);
 
         // wait for the JMS task to finish
-         try {
+        boolean m_uploadResult;
+        try {
              synchronized (mutex) {
                  while (!task.isTaskFinished()) {
                      mutex.wait();
@@ -133,6 +88,6 @@ public class UploadMzdbTask extends AbstractTask {
              return false;
          }
 
-        return m_uploadResult ;
+        return m_uploadResult;
     }
 }

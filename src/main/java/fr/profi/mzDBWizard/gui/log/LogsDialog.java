@@ -44,7 +44,6 @@ public class LogsDialog extends JDialog implements Runnable, WindowListener {
     private static int m_delayInSeconds;
     private final JTextArea m_textArea;
     private static TaskInfo m_taskInfo;
-    private final JScrollPane m_scrollPane;
     private boolean m_run = true;
     private static LogsDialog m_instance;
     private static JComponent m_parent;
@@ -94,7 +93,7 @@ public class LogsDialog extends JDialog implements Runnable, WindowListener {
         m_textArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         m_textArea.setEditable(false);
 
-        m_scrollPane = new JScrollPane(m_textArea);
+        JScrollPane m_scrollPane = new JScrollPane(m_textArea);
 
         DefaultCaret caret = (DefaultCaret) m_textArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);

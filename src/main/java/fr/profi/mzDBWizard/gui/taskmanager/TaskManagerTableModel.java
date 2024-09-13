@@ -76,8 +76,7 @@ public class TaskManagerTableModel extends AbstractTableModel implements TaskInf
     @Override
     public Object getValueAt(int row, int column) {
 
-        TaskInfo taskInfo = m_infoList.get(row);
-        return taskInfo;
+        return m_infoList.get(row);
 
     }
 

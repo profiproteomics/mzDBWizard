@@ -39,38 +39,6 @@ public class JMSMessageUtil {
     private static final int MESSAGE_BUFFER_SIZE = 2048;
 
 
-
-
-    public static JMSNotificationMessage buildJMSNotificationMessage(final Message message, JMSNotificationMessage.MessageStatus status) {
-
-        try {
-            String sName = message.getStringProperty(JMSConnectionManager.PROLINE_SERVICE_NAME_KEY);
-            String sVersion  = message.getStringProperty(JMSConnectionManager.PROLINE_SERVICE_VERSION_KEY);
-            String sSource  = message.getStringProperty(JMSConnectionManager.PROLINE_SERVICE_SOURCE_KEY);
-            String sDescription  = message.getStringProperty(JMSConnectionManager.PROLINE_SERVICE_DESCR_KEY);
-            String sMoreInfo = null;
-            if(TextMessage.class.isInstance(message))
-                sMoreInfo = ((TextMessage) message).getText();
-            Long sTimestamp = message.getJMSTimestamp();
-            String jmsId = message.getJMSMessageID();
-
-            String jsonId = "";
-            if(TextMessage.class.isInstance(message)){
-                try {
-                    JSONRPC2Request jsonMsg = JSONRPC2Request.parse(((TextMessage)message).getText());
-                    jsonId= jsonMsg.getID().toString();
-                } catch (JSONRPC2ParseException ex) {
-                    jsonId = jmsId;
-                }
-            }
-
-            JMSNotificationMessage notifMsg = new  JMSNotificationMessage(sName,sVersion, sSource, sDescription, sMoreInfo, sTimestamp, jmsId,jsonId, status);
-            return notifMsg;
-        }catch(JMSException jmsE ){
-            return null;
-        }
-    }
-
     /**
      * Formats some Header filds, Properties and Body of the given JMS Message to print usefull debug info.
      */

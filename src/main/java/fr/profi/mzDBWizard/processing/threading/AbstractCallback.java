@@ -17,6 +17,9 @@
 package fr.profi.mzDBWizard.processing.threading;
 
 import fr.profi.mzDBWizard.processing.info.TaskError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -26,6 +29,7 @@ import fr.profi.mzDBWizard.processing.info.TaskError;
  */
 public abstract class AbstractCallback {
 
+    protected Logger m_logger = LoggerFactory.getLogger(this.getClass());
     private TaskError m_taskError = null;
     private int m_errorId = -1;
 

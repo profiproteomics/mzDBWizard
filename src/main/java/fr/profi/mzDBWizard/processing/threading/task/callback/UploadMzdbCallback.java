@@ -46,7 +46,7 @@ public class UploadMzdbCallback extends AbstractCallback {
 
         // if cleanup is asked for mzdb file
         if (ConfigurationManager.getDeleteMzdb()) {
-            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(new DeleteFileCallback(), m_mzdbFile));
+            TaskManagerThread.getTaskManagerThread().addTask(new DeleteFileTask(null, m_mzdbFile));
             return;
         }
 
