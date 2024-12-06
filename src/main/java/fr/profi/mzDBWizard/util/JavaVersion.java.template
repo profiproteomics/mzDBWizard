@@ -11,7 +11,7 @@ import fr.profi.util.version.IVersion;
  *
  * @author AK249877
  */
-public class BuildInformation implements IVersion {
+public class JavaVersion implements IVersion {
 
     @Override
     public String getModuleName() {
@@ -22,5 +22,5 @@ public class BuildInformation implements IVersion {
     public String getVersion() {
         return "_version_";
     }
-    
+
 }

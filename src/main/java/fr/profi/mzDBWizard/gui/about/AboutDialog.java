@@ -17,7 +17,7 @@
 package fr.profi.mzDBWizard.gui.about;
 
 import fr.profi.mzDBWizard.gui.util.DefaultIcons;
-import fr.profi.mzDBWizard.util.BuildInformation;
+import fr.profi.mzDBWizard.util.JavaVersion;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -75,7 +75,7 @@ public class AboutDialog extends JDialog implements ActionListener, KeyListener 
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panel.setLayout(new BorderLayout());
 
-        BuildInformation buildInformation = new BuildInformation();
+        JavaVersion buildInformation = new JavaVersion();
         
         String title = buildInformation.getModuleName() + " ("+buildInformation.getVersion()+")";
         

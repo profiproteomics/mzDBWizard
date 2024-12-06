@@ -24,7 +24,7 @@ import fr.profi.mzDBWizard.gui.util.DefaultIcons;
 import fr.profi.mzDBWizard.gui.taskmanager.TaskManagerPanel;
 import fr.profi.mzDBWizard.gui.util.GenericTableRenderer;
 import fr.profi.mzDBWizard.processing.info.TaskInfoManager;
-import fr.profi.mzDBWizard.util.BuildInformation;
+import fr.profi.mzDBWizard.util.JavaVersion;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import javax.swing.BorderFactory;
@@ -67,7 +67,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener 
 
         setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.LOGO_ICON).getImage());
 
-        BuildInformation buildInformation = new BuildInformation();
+        JavaVersion buildInformation = new JavaVersion();
 
         setTitle(buildInformation.getModuleName() + " (" + buildInformation.getVersion() + ")");
 

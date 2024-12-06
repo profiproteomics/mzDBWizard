@@ -33,7 +33,7 @@ import fr.profi.mzDBWizard.processing.jms.queue.AccessJMSManagerThread;
 import fr.profi.mzDBWizard.processing.jms.queue.JMSConnectionManager;
 import fr.profi.mzDBWizard.processing.jms.task.MountingPathJMSTask;
 import fr.profi.mzDBWizard.processing.threading.FileProcessingExec;
-import fr.profi.mzDBWizard.util.BuildInformation;
+import fr.profi.mzDBWizard.util.JavaVersion;
 import fr.profi.mzDBWizard.util.FileUtility;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -127,7 +127,7 @@ public class SettingsAndReviewDialog extends JDialog implements ActionListener, 
 
         setModal(true);
 
-        BuildInformation buildInformation = new BuildInformation();
+        JavaVersion buildInformation = new JavaVersion();
         setTitle("Welcome to " + buildInformation.getModuleName() + " (" + buildInformation.getVersion() + ")");
         setIconImage(DefaultIcons.getSingleton().getIcon(DefaultIcons.LOGO_ICON).getImage());
         setResizable(true);
