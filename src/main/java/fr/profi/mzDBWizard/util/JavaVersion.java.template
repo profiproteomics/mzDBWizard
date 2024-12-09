@@ -11,16 +11,16 @@ import fr.profi.util.version.IVersion;
  *
  * @author AK249877
  */
-public class BuildInformation implements IVersion {
+public class JavaVersion implements IVersion {
 
     @Override
     public String getModuleName() {
-        return "mzDB-wizard";
+        return "_moduleName_";
     }
 
     @Override
     public String getVersion() {
-        return "1.2.0-SNAPSHOT";
+        return "_version_";
     }
-    
+
 }
