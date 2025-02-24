@@ -43,8 +43,8 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>fr.profi</groupId>
-            <artifactId>mzdb-converter</artifactId>
+            <groupId>fr.profi.msdata</groupId>
+            <artifactId>msdata-converter</artifactId>
             <version>${converter.version}</version>
             <type>zip</type>
         </dependency>
@@ -110,7 +110,6 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.11.0</version>
         </dependency>
         <dependency>
             <groupId>org.xerial</groupId>
