@@ -1,6 +1,10 @@
 # mzDBWizard
 Application to manage raw files (conversion to mzdb, then conversion to mgf, upload to server)
-  
+
+### Download
+Latest release could be downloaded on profi-proteomics site, in MsFiles toolset section of [download page](https://www.profiproteomics.fr/proline/proline-downloads/)
+
+
 ### Release
 
 #### 1.2.2 since 1.0.3
