@@ -11,13 +11,13 @@
 
     <groupId>fr.profi</groupId>
     <artifactId>mzDB-wizard</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mvn.version>3.1.0</mvn.version>
-        <converter.version>1.2.4</converter.version>
+        <converter.version>1.2.5</converter.version>
         <version.path>${basedir}/src/main/java/fr/profi/mzDBWizard/util</version.path>
     </properties>
 
