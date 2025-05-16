@@ -2,7 +2,7 @@
 Application to manage raw files (conversion to mzdb, then conversion to mgf, upload to server)
 
 ### Download
-Latest release could be downloaded on profi-proteomics site, in MsFiles toolset section of [download page](https://www.profiproteomics.fr/proline/proline-downloads/)
+Latest release could be downloaded on profi-proteomics site, in Automation Toolset section of [download page](https://www.profiproteomics.fr/proline/proline-downloads/)
 
 
 ### Release
