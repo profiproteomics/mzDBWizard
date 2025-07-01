@@ -327,16 +327,17 @@
                         <configuration>
                             <artifactItems>
                             <artifactItem>
-                                <groupId>fr.profi</groupId>
-                                <artifactId>mzdb-converter</artifactId>
+                                <groupId>fr.profi.msdata</groupId>
+                                <artifactId>msdata-converter</artifactId>
                                 <version>${converter.version}</version>
                                 <type>zip</type>
-                                <excludes>**/jre/**</excludes>
+                                <excludes>**/jdk/**</excludes>
                                 <outputDirectory>${project.build.directory}/converter</outputDirectory>
+
                                 <fileMappers>
                                     <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
-                                        <pattern>mzdb-converter-${converter.version}</pattern>
-                                        <replacement>mzdb-converter</replacement>
+                                        <pattern>msdata-converter-${converter.version}</pattern>
+                                        <replacement>msdata-converter</replacement>
                                     </fileMapper>
                                 </fileMappers>
                             </artifactItem>
@@ -400,7 +401,7 @@
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
-                            <excludeArtifactIds>mzdb-converter, ThermoAccess</excludeArtifactIds>
+                            <excludeArtifactIds>msdata-converter, ThermoAccess</excludeArtifactIds>
                             <includeTypes>zip</includeTypes>
                             <outputDirectory>${project.build.directory}/unzip-dependencies</outputDirectory>
                             <overWriteIfNewer>true</overWriteIfNewer>
@@ -458,8 +459,8 @@
                             <goal>replace</goal>
                         </goals>
                         <configuration>
-                            <file>${project.build.directory}/converter/mzdb-converter/mzdbConverter.bat</file>
-                            <outputFile>${project.build.directory}/converter/mzdb-converter/mzdbConverter.bat</outputFile>
+                            <file>${project.build.directory}/converter/msdata-converter/mzdbConverter.bat</file>
+                            <outputFile>${project.build.directory}/converter/msdata-converter/mzdbConverter.bat</outputFile>
                             <unescape>true</unescape>
                             <regex>false</regex>
                             <replacements>
