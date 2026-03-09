@@ -93,20 +93,14 @@ public class CreateMgfCommand extends MzdbCreateMgfCommand {
             command.useSelectionWindow = boostConfigTemplate.isUseSelectionWindow();
             logger.debug("useSelectionWindow: "+ command.useSelectionWindow);
 
-            command.swMaxPrecursorsCount = boostConfigTemplate.getSwMaxPrecursorsCount();
-            logger.debug("swMaxPrecursorsCount: "+ command.swMaxPrecursorsCount);
-
-            command.swIntensityThreshold = boostConfigTemplate.getSwIntensityThreshold();
-            logger.debug("swIntensityThreshold: "+ command.swIntensityThreshold);
-
             command.scanSelectorMode = boostConfigTemplate.getScanSelector();
             logger.debug("scanSelectorMode: "+ command.scanSelectorMode);
 
             command.pifThreshold = boostConfigTemplate.getPifThreshold();
             logger.debug("pifThreshold: "+ command.pifThreshold);
 
-            command.rankThreshold = boostConfigTemplate.getRankThreshold();
-            logger.debug("rankThreshold: "+ command.rankThreshold);
+            command.takeThreshold = boostConfigTemplate.getTakeThreshold();
+            logger.debug("rankThreshold: "+ command.takeThreshold);
 
         }
 
