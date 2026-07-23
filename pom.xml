@@ -17,7 +17,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mvn.version>3.1.0</mvn.version>
-        <converter.version>1.3.0</converter.version>
+        <converter.version>1.4.0-SNAPSHOT</converter.version>
+        <mzdb.version>1.5.0-SNAPSHOT</mzdb.version>
         <version.path>${basedir}/src/main/java/fr/profi/mzDBWizard/util</version.path>
     </properties>
 
@@ -30,7 +31,7 @@
         <dependency>
             <groupId>fr.profi.mgfboost</groupId>
             <artifactId>mgfBoost</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.oracle</groupId>
@@ -47,6 +48,7 @@
             <artifactId>msdata-converter</artifactId>
             <version>${converter.version}</version>
             <type>zip</type>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.spec.javax.jms</groupId>
@@ -81,8 +83,9 @@
         </dependency>
         <dependency>
             <groupId>fr.profi</groupId>
-            <artifactId>mzdb-access_${scala.compat.version}</artifactId>
-            <version>1.4.1</version>
+            <artifactId>mzdb-access</artifactId>
+            <version>${mzdb.version}</version>
+            <classifier>${scala.compat.version}</classifier>
             <exclusions>
                 <exclusion>
                     <groupId>xerces</groupId>
@@ -91,14 +94,15 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>mzdb-processing_${scala.compat.version}</artifactId>
-            <version>1.4.1</version>
+            <groupId>fr.profi</groupId>
+            <artifactId>mzdb-processing</artifactId>
+            <version>${mzdb.version}</version>
+            <classifier>${scala.compat.version}</classifier>
         </dependency>
         <dependency>
             <groupId>fr.profi</groupId>
             <artifactId>mzdb-swissknife</artifactId>
-            <version>1.2.1</version>
+            <version>1.3.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.oracle</groupId>
@@ -129,6 +133,7 @@
             <version>17.0.3.1</version>
             <type>zip</type>
             <classifier>${os.classifier}</classifier>
+            <scope>runtime</scope>
         </dependency>
 
     </dependencies>
