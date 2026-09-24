@@ -20,6 +20,7 @@
         <converter.version>1.4.0-SNAPSHOT</converter.version>
         <mzdb.version>1.5.0-SNAPSHOT</mzdb.version>
         <version.path>${basedir}/src/main/java/fr/profi/mzDBWizard/util</version.path>
+        <os.classifier>windows-x64</os.classifier>
     </properties>
 
     <name>mzDB-wizard</name>
@@ -47,6 +48,7 @@
             <groupId>fr.profi.msdata</groupId>
             <artifactId>msdata-converter</artifactId>
             <version>${converter.version}</version>
+            <classifier>${os.classifier}</classifier>
             <type>zip</type>
             <scope>runtime</scope>
         </dependency>
@@ -335,6 +337,7 @@
                                 <groupId>fr.profi.msdata</groupId>
                                 <artifactId>msdata-converter</artifactId>
                                 <version>${converter.version}</version>
+                                <classifier>${os.classifier}</classifier>
                                 <type>zip</type>
                                 <excludes>**/jdk/**</excludes>
                                 <outputDirectory>${project.build.directory}/converter</outputDirectory>
